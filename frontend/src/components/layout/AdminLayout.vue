@@ -19,7 +19,6 @@ const loading = ref(true);
 
 const menuItems = [
   { name: "Dashboard", icon: "home", route: "/admin/dashboard" },
-  { name: "Slider Beranda", icon: "slider", route: "/admin/sliders" },
   { name: "Berita", icon: "document", route: "/admin/articles" },
   { name: "Galeri", icon: "photo", route: "/admin/galleries" },
   { name: "Dokumen", icon: "folder", route: "/admin/documents" },
