@@ -4,10 +4,9 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 
 const menuItems = [
-  { name: 'Pendaftaran Mitra PAUD', path: '/mitra-paud/pendaftaran' },
+  { name: 'Mitra PAUD', path: '/mitra-paud' },
   { name: 'Bunda PAUD Kec. dan Kel.', path: '/bunda-paud' },
-  { name: 'Gugus Tugas PAUD HI', path: '/mitra-paud/gugus-tugas' },
-  { name: 'Mitra PAUD', path: '/mitra-paud' }
+  { name: 'Gugus Tugas PAUD HI', path: '/mitra-paud/gugus-tugas' }
 ]
 
 const isActive = (path) => route.path === path
