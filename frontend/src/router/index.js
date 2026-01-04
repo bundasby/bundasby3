@@ -270,7 +270,7 @@ const routes = [
   {
     path: "/mitra-paud/pendaftaran",
     name: "pendaftaran-mitra",
-    component: () => import("../views/mitra-paud/PendaftaranMitraView.vue"),
+    redirect: { name: "mitra-paud", query: { tab: "pendaftaran" } },
     meta: { title: "Pendaftaran Mitra PAUD" },
   },
   {
