@@ -195,6 +195,16 @@ onMounted(() => {
               </button>
 
               <button
+                @click="activeTab = 'pendaftaran'"
+                class="px-5 py-2.5 rounded-lg font-medium transition-all"
+                :class="activeTab === 'pendaftaran' 
+                  ? 'bg-teal-600 text-white shadow-lg' 
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100'"
+              >
+                📝 Pendaftaran Mitra
+              </button>
+
+              <button
                 @click="activeTab = 'list'"
                 class="px-5 py-2.5 rounded-lg font-medium transition-all"
                 :class="activeTab === 'list' 
@@ -212,7 +222,7 @@ onMounted(() => {
                 <div class="card p-8 bg-teal-50 dark:bg-teal-900/10 mb-8 border-l-4 border-teal-500">
                   <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Siapa Mitra PAUD?</h2>
                   <p class="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
-                    <strong>Mitra PAUD</strong> adalah organisasi, lembaga, atau individu yang berkolaborasi dalam mendukung layanan PAUD berkualitas.
+                    <strong>Mitra PAUD</strong> adalah Mitra PAUD adalah organisasi, lembaga, atau individu yang berkolaborasi dengan Bunda PAUD dalam mendukung penyelenggaraan layanan PAUD bermutu. Mitra PAUD berperan penting dalam memperluas jangkauan dan meningkatkan mutu pendidikan anak usia dini.
                   </p>
                 </div>
 
@@ -326,181 +336,15 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- Section 5: Formulir Pendaftaran -->
-              <div id="form-pendaftaran" class="mb-12 scroll-mt-24">
-                <div class="card p-8 border border-teal-200 dark:border-teal-800 shadow-xl shadow-teal-900/5">
-                  <div class="text-center mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Formulir Pendaftaran Mitra</h2>
-                    <p class="text-gray-600 dark:text-gray-400">Bergabunglah bersama kami membangun pendidikan Surabaya</p>
-                  </div>
-
-                  <!-- Success Message -->
-                  <div v-if="submitted" class="text-center py-12">
-                    <div class="w-20 h-20 mx-auto mb-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                      <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Pendaftaran Berhasil!</h3>
-                    <p class="text-gray-600 dark:text-gray-400 mb-6">
-                      Terima kasih telah mendaftar. Tim kami akan segera menghubungi Anda.
-                    </p>
-                    <button @click="resetForm" class="btn-primary">Kirim Lagi</button>
-                  </div>
-
-                  <!-- Form Input -->
-                  <form v-else @submit.prevent="handleSubmit" class="space-y-6 max-w-3xl mx-auto">
-                    
-                    <!-- Section: Data Responden -->
-                    <div class="border-b border-gray-200 dark:border-gray-700 pb-2 mb-4">
-                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Data Responden</h3>
-                    </div>
-                    
-                    <div class="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Responden *</label>
-                        <input v-model="form.namaResponden" type="text" required class="form-input w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500" placeholder="Nama lengkap">
-                      </div>
-                      <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jabatan Responden *</label>
-                        <input v-model="form.jabatanResponden" type="text" required class="form-input w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500" placeholder="Jabatan di organisasi">
-                      </div>
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nomor HP Responden (terhubung dengan WA) *</label>
-                      <input v-model="form.nomorHpResponden" type="tel" required class="form-input w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500" placeholder="08xxxxxxxxxx">
-                    </div>
-
-                    <!-- Section: Data Organisasi -->
-                    <div class="border-b border-gray-200 dark:border-gray-700 pb-2 mb-4 pt-6">
-                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Data Organisasi/Perusahaan</h3>
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Organisasi/Perusahaan *</label>
-                      <input v-model="form.namaOrganisasi" type="text" required class="form-input w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500" placeholder="Nama resmi organisasi">
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori Mitra *</label>
-                      <select v-model="form.kategori" required class="form-select w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500">
-                        <option value="">Pilih Kategori</option>
-                        <option v-for="opt in kategoriOptions" :key="opt" :value="opt">{{ opt }}</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Alamat Kantor *</label>
-                      <textarea v-model="form.alamatKantor" rows="2" required class="form-textarea w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500" placeholder="Alamat lengkap kantor"></textarea>
-                    </div>
-
-                    <div class="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nomor Telepon Organisasi *</label>
-                        <input v-model="form.teleponOrganisasi" type="tel" required class="form-input w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500" placeholder="021-xxxxxxx">
-                      </div>
-                      <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Organisasi *</label>
-                        <input v-model="form.emailOrganisasi" type="email" required class="form-input w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500" placeholder="email@organisasi.com">
-                      </div>
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tautan Website atau Media Sosial *</label>
-                      <input v-model="form.websiteSosmed" type="url" required class="form-input w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500" placeholder="https://...">
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Direktur/Ketua/Koordinator *</label>
-                      <input v-model="form.namaDirektur" type="text" required class="form-input w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500" placeholder="Nama pimpinan organisasi">
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tujuan/Orientasi Organisasi *</label>
-                      <textarea v-model="form.tujuanOrganisasi" rows="3" required class="form-textarea w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500" placeholder="Jelaskan visi, misi, dan tujuan organisasi"></textarea>
-                    </div>
-
-                    <!-- Section: Kolaborasi -->
-                    <div class="border-b border-gray-200 dark:border-gray-700 pb-2 mb-4 pt-6">
-                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Bentuk Kolaborasi</h3>
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Bentuk Kolaborasi yang Diharapkan (Boleh lebih dari satu) *</label>
-                      <div class="grid md:grid-cols-2 gap-3">
-                        <label v-for="kolaborasi in bentukKolaborasiOptions" :key="kolaborasi" class="flex items-center gap-3 p-3 border rounded-lg bg-gray-50 dark:bg-gray-800 cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-900/20">
-                          <input type="checkbox" :value="kolaborasi" v-model="form.bentukKolaborasi" class="text-teal-600 focus:ring-teal-500 rounded">
-                          <span class="text-sm text-gray-700 dark:text-gray-300">{{ kolaborasi }}</span>
-                        </label>
-                        <label class="flex items-center gap-3 p-3 border rounded-lg bg-gray-50 dark:bg-gray-800 cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-900/20">
-                          <input type="checkbox" value="Lainnya" v-model="form.bentukKolaborasi" class="text-teal-600 focus:ring-teal-500 rounded">
-                          <span class="text-sm text-gray-700 dark:text-gray-300">Lainnya</span>
-                        </label>
-                      </div>
-                      <div v-if="form.bentukKolaborasi.includes('Lainnya')" class="mt-3">
-                        <input v-model="form.kolaborasiLainnya" type="text" class="form-input w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500" placeholder="Sebutkan bentuk kolaborasi lainnya...">
-                      </div>
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Catatan Bentuk Kolaborasi</label>
-                      <textarea v-model="form.catatanKolaborasi" rows="3" class="form-textarea w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500" placeholder="Jelaskan detail rencana kolaborasi Anda..."></textarea>
-                    </div>
-
-                    <!-- Section: Upload Dokumen -->
-                    <div class="border-b border-gray-200 dark:border-gray-700 pb-2 mb-4 pt-6">
-                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Upload Dokumen</h3>
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logo Organisasi/Perusahaan *</label>
-                      <p class="text-xs text-gray-500 mb-2">Format PNG, latar belakang transparan, maksimum 1 MB. Logo akan ditampilkan di website dan kegiatan Bunda PAUD.</p>
-                      <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                        <div class="space-y-1 text-center">
-                          <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                          </svg>
-                          <div class="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
-                            <label for="logo-upload" class="relative cursor-pointer rounded-md font-medium text-teal-600 hover:text-teal-500">
-                              <span>Upload Logo</span>
-                              <input id="logo-upload" name="logo-upload" type="file" accept=".png" class="sr-only">
-                            </label>
-                          </div>
-                          <p class="text-xs text-gray-500">PNG, max 1MB</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload Surat Pernyataan Kesanggupan *</label>
-                      <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                        <div class="space-y-1 text-center">
-                          <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                          </svg>
-                          <div class="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
-                            <label for="surat-upload" class="relative cursor-pointer rounded-md font-medium text-teal-600 hover:text-teal-500">
-                              <span>Upload Surat</span>
-                              <input id="surat-upload" name="surat-upload" type="file" accept=".pdf,.doc,.docx" class="sr-only">
-                            </label>
-                          </div>
-                          <p class="text-xs text-gray-500">PDF, DOC, DOCX up to 10MB</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Link Dokumen Pendukung (Opsional)</label>
-                      <input v-model="form.linkDokumenPendukung" type="url" class="form-input w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500" placeholder="https://drive.google.com/...">
-                    </div>
-
-                    <button type="submit" :disabled="loading" class="w-full btn-primary py-4 text-lg font-bold shadow-lg shadow-teal-500/30">
-                      <span v-if="loading">Mengirim pendaftaran...</span>
-                      <span v-else>SUBMIT PENDAFTARAN</span>
-                    </button>
-                  </form>
-                </div>
+              <!-- CTA Box (setelah Alur Kegiatan) -->
+              <div class="card p-8 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-center mb-8">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Tertarik Menjadi Mitra PAUD?</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">
+                  Bergabunglah dalam gerakan untuk mewujudkan layanan PAUD berkualitas
+                </p>
+                <button @click="activeTab = 'pendaftaran'" class="btn-primary">
+                  Daftar Sekarang
+                </button>
               </div>
 
               <!-- Section 6: Footer Download Center -->
@@ -529,6 +373,166 @@ onMounted(() => {
                     <span class="text-sm font-medium">POS Mitra Alat Bantu</span>
                   </a>
                 </div>
+              </div>
+            </div>
+
+            <!-- Tab: Pendaftaran Mitra PAUD -->
+            <div v-else-if="activeTab === 'pendaftaran'">
+              <div class="card p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Formulir Pendaftaran Mitra</h2>
+                <div class="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-4 mb-6">
+                  <p class="text-sm text-blue-700 dark:text-blue-300">
+                    Silakan lengkapi formulir di bawah ini untuk mengajukan permohonan menjadi Mitra PAUD.
+                  </p>
+                </div>
+
+                <!-- Success State -->
+                <div v-if="submitted" class="text-center py-12">
+                  <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Pendaftaran Berhasil!</h3>
+                  <p class="text-gray-600 dark:text-gray-400 mb-6">
+                    Terima kasih telah mengajukan pendaftaran. Tim kami akan segera meninjau permohonan Anda.
+                  </p>
+                  <button @click="resetForm" class="btn-primary">
+                    Kirim Pendaftaran Lain
+                  </button>
+                </div>
+
+                <!-- Form -->
+                <form v-else @submit.prevent="handleSubmit" class="space-y-6">
+                  <!-- Data Responden -->
+                  <div class="border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Data Responden</h3>
+                  </div>
+
+                  <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Responden *</label>
+                      <input v-model="form.namaResponden" type="text" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Nama lengkap" />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jabatan Responden *</label>
+                      <input v-model="form.jabatanResponden" type="text" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Jabatan di organisasi" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nomor HP Responden (terhubung WA) *</label>
+                    <input v-model="form.nomorHpResponden" type="tel" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="08xxxxxxxxxx" />
+                  </div>
+
+                  <!-- Data Organisasi -->
+                  <div class="border-b border-gray-200 dark:border-gray-700 pb-4 mb-4 pt-4">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Data Organisasi/Perusahaan</h3>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Organisasi/Perusahaan *</label>
+                    <input v-model="form.namaOrganisasi" type="text" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Nama resmi organisasi" />
+                  </div>
+
+                  <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori Mitra *</label>
+                      <select v-model="form.kategori" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                        <option value="">Pilih Kategori</option>
+                        <option v-for="opt in kategoriOptions" :key="opt" :value="opt">{{ opt }}</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Direktur/Ketua *</label>
+                      <input v-model="form.namaDirektur" type="text" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Nama pimpinan" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Alamat Kantor *</label>
+                    <textarea v-model="form.alamatKantor" rows="2" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Alamat lengkap kantor"></textarea>
+                  </div>
+
+                  <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Telepon Organisasi *</label>
+                      <input v-model="form.teleponOrganisasi" type="tel" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="021-xxxxxxx" />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Organisasi *</label>
+                      <input v-model="form.emailOrganisasi" type="email" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="email@organisasi.com" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Website/Media Sosial *</label>
+                    <input v-model="form.websiteSosmed" type="url" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="https://..." />
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tujuan/Orientasi Organisasi *</label>
+                    <textarea v-model="form.tujuanOrganisasi" rows="3" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Jelaskan visi, misi, dan tujuan organisasi"></textarea>
+                  </div>
+
+                  <!-- Bentuk Kolaborasi -->
+                  <div class="border-b border-gray-200 dark:border-gray-700 pb-4 mb-4 pt-4">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Bentuk Kolaborasi</h3>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Bentuk Kolaborasi yang Diharapkan *</label>
+                    <div class="grid md:grid-cols-2 gap-3">
+                      <label v-for="kolaborasi in bentukKolaborasiOptions" :key="kolaborasi" class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <input type="checkbox" :value="kolaborasi" v-model="form.bentukKolaborasi" class="text-teal-600 focus:ring-teal-500 rounded">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ kolaborasi }}</span>
+                      </label>
+                      <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <input type="checkbox" value="Lainnya" v-model="form.bentukKolaborasi" class="text-teal-600 focus:ring-teal-500 rounded">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">Lainnya</span>
+                      </label>
+                    </div>
+                    <div v-if="form.bentukKolaborasi.includes('Lainnya')" class="mt-3">
+                      <input v-model="form.kolaborasiLainnya" type="text" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Sebutkan bentuk kolaborasi lainnya...">
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Catatan Bentuk Kolaborasi</label>
+                    <textarea v-model="form.catatanKolaborasi" rows="3" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Jelaskan detail rencana kolaborasi Anda..."></textarea>
+                  </div>
+
+                  <!-- Upload Dokumen -->
+                  <div class="border-b border-gray-200 dark:border-gray-700 pb-4 mb-4 pt-4">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Upload Dokumen</h3>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logo Organisasi (PNG, transparan, max 1MB) *</label>
+                    <input type="file" accept=".png" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Surat Pernyataan Kesanggupan *</label>
+                    <input type="file" accept=".pdf,.doc,.docx" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Link Dokumen Pendukung (Opsional)</label>
+                    <input v-model="form.linkDokumenPendukung" type="url" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="https://drive.google.com/..." />
+                  </div>
+
+                  <button type="submit" :disabled="loading" class="w-full btn-primary py-4 disabled:opacity-50">
+                    <span v-if="loading" class="flex items-center justify-center gap-2">
+                      <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Mengirim...
+                    </span>
+                    <span v-else>Daftar Sebagai Mitra</span>
+                  </button>
+                </form>
               </div>
             </div>
 
