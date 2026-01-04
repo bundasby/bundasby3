@@ -151,8 +151,22 @@ const submitForm = () => {
                   </svg>
                 </div>
                 <div>
-                  <h3 class="font-semibold text-gray-900 dark:text-white">Jam Kerja</h3>
-                  <p class="text-gray-600 dark:text-gray-400">{{ contactInfo.hours }}</p>
+                  <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Jam Layanan</h3>
+                  <div class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                    <div>
+                      <p class="font-medium text-gray-800 dark:text-gray-200">Senin - Kamis</p>
+                      <p>Waktu: 07:30 - 16:00 WIB</p>
+                      <p class="text-xs text-gray-500">Istirahat: 12:00 - 13:00 WIB</p>
+                    </div>
+                    <div>
+                      <p class="font-medium text-gray-800 dark:text-gray-200">Jumat</p>
+                      <p>Waktu: 07:00 - 16:30 WIB</p>
+                      <p class="text-xs text-gray-500">Istirahat: 11:30 - 13:00 WIB</p>
+                    </div>
+                    <div>
+                      <p class="text-red-500 font-medium">Sabtu & Minggu: Libur</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
