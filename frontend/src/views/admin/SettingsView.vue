@@ -112,11 +112,15 @@ const saveSettings = async () => {
 };
 
 // ========== PROFIL DATA ==========
+const activeProfilTab = ref("sambutan");
 const profilData = ref({
+  sambutan: "",
   visiMisi: "",
+  artiLogo: "",
   tugasFungsi: "",
   strukturOrganisasi: "",
-  artiLogo: "",
+  penghargaan: "",
+  faq: "",
 });
 
 const saveProfilSettings = () => {
@@ -314,27 +318,128 @@ onMounted(async () => {
     <!-- Tab: PROFIL -->
     <div v-else-if="activeTab === 'profil'">
       <p class="text-gray-600 dark:text-gray-400 mb-6">
-        Kelola konten halaman profil (dalam pengembangan)
+        Kelola konten halaman profil
       </p>
 
-      <div class="card p-6 space-y-6">
-        <div class="text-center py-12">
-          <svg
-            class="w-16 h-16 mx-auto text-gray-400 mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+      <!-- Profil Sub-tabs -->
+      <div class="flex flex-wrap gap-2 mb-6 overflow-x-auto">
+        <button 
+          v-for="tab in [
+            { key: 'sambutan', label: 'Sambutan', icon: '👋' },
+            { key: 'visiMisi', label: 'Visi, Misi, Motto', icon: '🎯' },
+            { key: 'artiLogo', label: 'Arti Logo', icon: '🏛️' },
+            { key: 'tugasFungsi', label: 'Tugas & Fungsi', icon: '📋' },
+            { key: 'strukturOrganisasi', label: 'Struktur Organisasi', icon: '🏢' },
+            { key: 'penghargaan', label: 'Penghargaan', icon: '🏆' },
+            { key: 'faq', label: 'FAQ', icon: '❓' }
+          ]"
+          :key="tab.key"
+          @click="activeProfilTab = tab.key"
+          class="px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap"
+          :class="activeProfilTab === tab.key 
+            ? 'bg-primary-600 text-white shadow' 
+            : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'"
+        >
+          {{ tab.icon }} {{ tab.label }}
+        </button>
+      </div>
+
+      <div class="max-w-3xl">
+        <!-- Sambutan -->
+        <div v-if="activeProfilTab === 'sambutan'" class="card p-6">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Sambutan Bunda PAUD</h2>
+          <p class="text-sm text-gray-500 mb-4">Konten sambutan yang tampil di halaman utama profil</p>
+          <textarea 
+            v-model="profilData.sambutan"
+            rows="12"
+            placeholder="Tulis konten sambutan Bunda PAUD di sini..."
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          ></textarea>
+        </div>
+
+        <!-- Visi Misi Motto -->
+        <div v-if="activeProfilTab === 'visiMisi'" class="card p-6">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Visi, Misi & Motto</h2>
+          <p class="text-sm text-gray-500 mb-4">Konten visi, misi, dan motto organisasi</p>
+          <textarea 
+            v-model="profilData.visiMisi"
+            rows="12"
+            placeholder="Tulis konten visi, misi, dan motto di sini..."
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          ></textarea>
+        </div>
+
+        <!-- Arti Logo -->
+        <div v-if="activeProfilTab === 'artiLogo'" class="card p-6">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Arti Logo Bunda PAUD</h2>
+          <p class="text-sm text-gray-500 mb-4">Penjelasan filosofi dan makna logo Bunda PAUD</p>
+          <textarea 
+            v-model="profilData.artiLogo"
+            rows="12"
+            placeholder="Tulis konten arti logo di sini..."
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          ></textarea>
+        </div>
+
+        <!-- Tugas dan Fungsi -->
+        <div v-if="activeProfilTab === 'tugasFungsi'" class="card p-6">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Tugas dan Fungsi</h2>
+          <p class="text-sm text-gray-500 mb-4">Deskripsi tugas pokok dan fungsi Bunda PAUD</p>
+          <textarea 
+            v-model="profilData.tugasFungsi"
+            rows="12"
+            placeholder="Tulis konten tugas dan fungsi di sini..."
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          ></textarea>
+        </div>
+
+        <!-- Struktur Organisasi -->
+        <div v-if="activeProfilTab === 'strukturOrganisasi'" class="card p-6">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Struktur Organisasi</h2>
+          <p class="text-sm text-gray-500 mb-4">Konten struktur organisasi Bunda PAUD</p>
+          <textarea 
+            v-model="profilData.strukturOrganisasi"
+            rows="12"
+            placeholder="Tulis konten struktur organisasi di sini..."
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          ></textarea>
+        </div>
+
+        <!-- Penghargaan -->
+        <div v-if="activeProfilTab === 'penghargaan'" class="card p-6">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Penghargaan</h2>
+          <p class="text-sm text-gray-500 mb-4">Daftar penghargaan yang diterima</p>
+          <textarea 
+            v-model="profilData.penghargaan"
+            rows="12"
+            placeholder="Tulis konten penghargaan di sini..."
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          ></textarea>
+        </div>
+
+        <!-- FAQ -->
+        <div v-if="activeProfilTab === 'faq'" class="card p-6">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">FAQ (Frequently Asked Questions)</h2>
+          <p class="text-sm text-gray-500 mb-4">Pertanyaan yang sering diajukan</p>
+          <textarea 
+            v-model="profilData.faq"
+            rows="12"
+            placeholder="Tulis konten FAQ di sini..."
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          ></textarea>
+        </div>
+
+        <!-- Save Button -->
+        <div class="mt-6 flex justify-end">
+          <button
+            @click="saveProfilSettings"
+            class="btn-primary flex items-center gap-2"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-            />
-          </svg>
-          <p class="text-gray-600 dark:text-gray-400">
-            Pengaturan profil akan ditambahkan di update selanjutnya
-          </p>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Simpan Pengaturan Profil
+          </button>
         </div>
       </div>
     </div>
