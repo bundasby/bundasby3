@@ -433,7 +433,7 @@ const submitReply = async (postId) => {
                 </div>
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white mb-1">Jumat</p>
-                  <p class="text-gray-600 dark:text-gray-400">07:00 - 16:30 WIB</p>
+                  <p class="text-gray-600 dark:text-gray-400">07:30 - 16:30 WIB</p>
                   <p class="text-xs text-gray-500">Istirahat: 11:30 - 13:00 WIB</p>
                 </div>
               </div>
