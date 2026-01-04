@@ -5,6 +5,9 @@ import MitraPaudSidebar from '@/components/layout/MitraPaudSidebar.vue'
 // Tab state
 const activeTab = ref('pengertian')
 
+// URL SK Dokumen (kosong = placeholder, isi dengan URL PDF saat tersedia)
+const skPdfUrl = ref('')
+
 // Demo list anggota gugus tugas
 const anggotaList = ref([
   { id: 1, nama: 'Walikota Surabaya', jabatan: 'Pengarah', instansi: 'Pemerintah Kota Surabaya', kategori: 'Pengarah' },
@@ -190,6 +193,70 @@ import { computed } from 'vue'
                         <span class="text-sm bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded">BAPPEKO</span>
                         <span class="text-sm bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded">Kecamatan</span>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dokumen SK -->
+              <div class="card p-8 mb-8">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  Dokumen SK Gugus Tugas
+                </h2>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">
+                  Surat Keputusan Walikota Surabaya tentang Penyelenggaraan Pengembangan Anak Usia Dini Holistik Integratif
+                </p>
+                
+                <!-- SK Document Card -->
+                <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                  <!-- Preview Header -->
+                  <div class="bg-gray-100 dark:bg-gray-800 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Preview Dokumen</h3>
+                  </div>
+                  
+                  <!-- PDF Preview Area -->
+                  <div class="bg-white dark:bg-gray-900 p-6">
+                    <!-- Placeholder when PDF not yet uploaded -->
+                    <div v-if="!skPdfUrl" class="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                      <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p class="text-gray-600 dark:text-gray-400 mb-2">Dokumen SK sedang dipersiapkan</p>
+                      <p class="text-sm text-gray-500">PDF akan segera tersedia</p>
+                    </div>
+                    
+                    <!-- PDF iframe when available -->
+                    <div v-else class="aspect-[3/4] max-h-[600px]">
+                      <iframe 
+                        :src="skPdfUrl" 
+                        class="w-full h-full rounded-lg border border-gray-200 dark:border-gray-700"
+                        title="SK Gugus Tugas PAUD HI"
+                      ></iframe>
+                    </div>
+                  </div>
+                  
+                  <!-- Document Info -->
+                  <div class="bg-gray-50 dark:bg-gray-800 px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div>
+                        <p class="font-medium text-gray-900 dark:text-white">Peraturan Walikota Surabaya Nomor 13 Tahun 2024</p>
+                        <p class="text-sm text-gray-500">Tentang Perubahan Atas Peraturan Walikota Surabaya Nomor 8 Tahun 2022</p>
+                      </div>
+                      <a 
+                        v-if="skPdfUrl"
+                        :href="skPdfUrl" 
+                        target="_blank"
+                        class="btn-primary flex items-center gap-2 whitespace-nowrap"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Unduh PDF
+                      </a>
+                      <span v-else class="text-sm text-gray-500 italic">Dokumen segera tersedia</span>
                     </div>
                   </div>
                 </div>
