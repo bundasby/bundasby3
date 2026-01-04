@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { settingsService } from '@/services'
 import ProfilSidebar from '@/components/layout/ProfilSidebar.vue'
 
@@ -24,6 +24,25 @@ const socialMedia = [
   { name: 'Facebook', url: 'https://facebook.com/bundapaudsurabaya', icon: 'facebook' },
   { name: 'YouTube', url: 'https://youtube.com/@bundapaudsurabaya', icon: 'youtube' }
 ]
+
+// Extract src URL from iframe HTML
+const extractedMapSrc = computed(() => {
+  const html = contactInfo.value.googleMapsUrl
+  if (!html) return null
+  
+  // If it's already a direct URL, return it
+  if (html.startsWith('https://www.google.com/maps/embed')) {
+    return html
+  }
+  
+  // Extract src from iframe HTML
+  const srcMatch = html.match(/src=["']([^"']+)["']/)
+  if (srcMatch && srcMatch[1]) {
+    return srcMatch[1]
+  }
+  
+  return null
+})
 
 onMounted(() => {
   // Load settings from localStorage
@@ -220,7 +239,8 @@ const submitForm = () => {
         <div class="mt-12">
           <div class="card overflow-hidden">
             <iframe 
-              :src="contactInfo.googleMapsUrl"
+              v-if="extractedMapSrc"
+              :src="extractedMapSrc"
               width="100%" 
               height="400" 
               style="border:0;" 
@@ -228,6 +248,9 @@ const submitForm = () => {
               loading="lazy"
               class="w-full"
             ></iframe>
+            <div v-else class="h-64 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+              <p class="text-gray-500">Peta tidak tersedia. Silakan atur Google Maps di admin.</p>
+            </div>
           </div>
         </div>
       </div>
