@@ -3,10 +3,21 @@ import { ref, onMounted } from 'vue'
 import { profileService } from '@/services'
 
 const content = ref(null)
+const localContent = ref('')
 const loading = ref(true)
 
 onMounted(async () => {
   try {
+    // First check localStorage for admin-edited content
+    const saved = localStorage.getItem('bp_profil_settings')
+    if (saved) {
+      const profilData = JSON.parse(saved)
+      if (profilData.tugasFungsi) {
+        localContent.value = profilData.tugasFungsi
+      }
+    }
+    
+    // Also try to load from profileService
     const response = await profileService.getActive()
     if (response.success && response.data['tugas_fungsi']) {
       content.value = response.data['tugas_fungsi']
@@ -38,8 +49,13 @@ onMounted(async () => {
       </div>
 
       <div v-else class="max-w-4xl mx-auto">
+        <!-- Admin Content from localStorage -->
+        <div v-if="localContent" class="card p-8 mb-8">
+          <div class="prose dark:prose-invert max-w-none whitespace-pre-wrap">{{ localContent }}</div>
+        </div>
+        
         <!-- Dynamic Content -->
-        <div v-if="content" class="card p-8 mb-8">
+        <div v-else-if="content" class="card p-8 mb-8">
            <div class="prose dark:prose-invert max-w-none" v-html="content.content"></div>
         </div>
         

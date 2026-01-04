@@ -3,11 +3,22 @@ import { ref, onMounted } from 'vue'
 import { profileService, statisticsService } from '@/services'
 
 const sambutan = ref(null)
+const localSambutan = ref('')
 const statistics = ref(null)
 const loading = ref(true)
 
 onMounted(async () => {
   try {
+    // First check localStorage for admin-edited content
+    const saved = localStorage.getItem('bp_profil_settings')
+    if (saved) {
+      const profilData = JSON.parse(saved)
+      if (profilData.sambutan) {
+        localSambutan.value = profilData.sambutan
+      }
+    }
+    
+    // Also try to load from profileService
     const [profileRes, statsRes] = await Promise.all([
       profileService.getActive(),
       statisticsService.get()
@@ -32,8 +43,21 @@ onMounted(async () => {
   <div>
     <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Tentang Bunda PAUD</h2>
     
+    <!-- Admin Content from localStorage -->
+    <div v-if="localSambutan" class="card p-6 mb-8 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-primary-900/20 dark:to-accent-900/20">
+      <div class="flex flex-col md:flex-row gap-6 items-center">
+        <div class="w-32 h-32 rounded-full bg-primary-200 dark:bg-primary-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+          <img src="https://placehold.co/128x128/2563eb/ffffff?text=BP" alt="Bunda PAUD" class="w-full h-full object-cover"/>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Sambutan Bunda PAUD Kota Surabaya</h3>
+          <div class="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{{ localSambutan }}</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Dynamic Sambutan / Hero -->
-    <div v-if="sambutan" class="card p-6 mb-8 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-primary-900/20 dark:to-accent-900/20">
+    <div v-else-if="sambutan" class="card p-6 mb-8 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-primary-900/20 dark:to-accent-900/20">
       <div class="flex flex-col md:flex-row gap-6 items-center">
         <div v-if="sambutan.image" class="w-32 h-32 rounded-full bg-primary-200 dark:bg-primary-800 flex items-center justify-center overflow-hidden flex-shrink-0">
           <img :src="sambutan.image" :alt="sambutan.title" class="w-full h-full object-cover"/>

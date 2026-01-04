@@ -46,9 +46,20 @@ const defaultAwards = [
 ];
 
 const awards = ref(defaultAwards);
+const localContent = ref('');
 
 onMounted(async () => {
   try {
+    // First check localStorage for admin-edited content
+    const saved = localStorage.getItem('bp_profil_settings')
+    if (saved) {
+      const profilData = JSON.parse(saved)
+      if (profilData.penghargaan) {
+        localContent.value = profilData.penghargaan
+      }
+    }
+    
+    // Also try to load from profileService
     const response = await profileService.getActive();
     if (response.success && response.data["penghargaan"]) {
       content.value = response.data["penghargaan"];
@@ -75,6 +86,13 @@ onMounted(async () => {
       <div
         class="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"
       ></div>
+    </div>
+
+    <!-- Admin Content from localStorage -->
+    <div v-else-if="localContent" class="space-y-6">
+      <div class="card p-8">
+        <div class="prose dark:prose-invert max-w-none whitespace-pre-wrap">{{ localContent }}</div>
+      </div>
     </div>
 
     <!-- Dynamic Content from API -->

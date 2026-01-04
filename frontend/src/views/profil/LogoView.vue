@@ -3,10 +3,21 @@ import { ref, onMounted } from 'vue'
 import { profileService } from '@/services'
 
 const content = ref(null)
+const localContent = ref('')
 const loading = ref(true)
 
 onMounted(async () => {
   try {
+    // First check localStorage for admin-edited content
+    const saved = localStorage.getItem('bp_profil_settings')
+    if (saved) {
+      const profilData = JSON.parse(saved)
+      if (profilData.artiLogo) {
+        localContent.value = profilData.artiLogo
+      }
+    }
+    
+    // Also try to load from profileService
     const response = await profileService.getActive()
     if (response.success && response.data['arti_logo']) {
       content.value = response.data['arti_logo']
@@ -49,8 +60,19 @@ onMounted(async () => {
           <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ content?.title || 'Logo Bunda PAUD' }}</h2>
         </div>
 
-        <!-- Filosofi (Dynamic) -->
-        <div v-if="content" class="card p-8 mb-8">
+        <!-- Admin Content from localStorage -->
+        <div v-if="localContent" class="card p-8 mb-8">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            Makna dan Filosofi
+          </h2>
+          <div class="prose dark:prose-invert max-w-none whitespace-pre-wrap">{{ localContent }}</div>
+        </div>
+        
+        <!-- Filosofi (Dynamic from profileService) -->
+        <div v-else-if="content" class="card p-8 mb-8">
           <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
             <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />

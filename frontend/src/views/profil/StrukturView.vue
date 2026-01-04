@@ -56,8 +56,20 @@ const bidangList = [
   }
 ]
 
+const localContent = ref('')
+
 onMounted(async () => {
   try {
+    // First check localStorage for admin-edited content
+    const saved = localStorage.getItem('bp_profil_settings')
+    if (saved) {
+      const profilData = JSON.parse(saved)
+      if (profilData.strukturOrganisasi) {
+        localContent.value = profilData.strukturOrganisasi
+      }
+    }
+    
+    // Also try to load from profileService
     const response = await profileService.getActive()
     if (response.success && response.data['struktur_organisasi']) {
       content.value = response.data['struktur_organisasi']
@@ -80,6 +92,13 @@ onMounted(async () => {
     <!-- Org Chart -->
     <div v-if="loading" class="flex justify-center py-12">
       <div class="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+    </div>
+
+    <!-- Admin Content from localStorage -->
+    <div v-else-if="localContent" class="space-y-8">
+      <div class="card p-8">
+        <div class="prose dark:prose-invert max-w-none whitespace-pre-wrap">{{ localContent }}</div>
+      </div>
     </div>
 
     <div v-else-if="content" class="space-y-8">
