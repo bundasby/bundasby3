@@ -249,6 +249,10 @@ export const settingsService = {
     return settingsStorage.get()
   },
 
+  save(data) {
+    return settingsStorage.update(data)
+  },
+
   update(data) {
     return settingsStorage.update(data)
   }
