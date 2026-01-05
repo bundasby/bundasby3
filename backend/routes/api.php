@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\BundaPaudController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\SliderController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\FileUploadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,6 +21,10 @@ use App\Http\Controllers\Api\ProfileController;
 
 // Public Routes
 Route::prefix('v1')->group(function () {
+
+    // File Upload (public for now, can be protected later)
+    Route::post('/upload', [FileUploadController::class, 'upload']);
+    Route::delete('/upload', [FileUploadController::class, 'delete']);
 
     // Authentication
     Route::post('/auth/login', [AuthController::class, 'login']);

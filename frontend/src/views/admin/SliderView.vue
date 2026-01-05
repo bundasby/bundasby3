@@ -2,12 +2,19 @@
 import { ref, onMounted } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { useSliderStore } from '@/stores/slider'
+import { uploadFile, fileToBase64, checkApiAvailable } from '@/services/api'
 
 const sliderStore = useSliderStore()
 
-// Fetch slides on mount
+// Upload state
+const isUploading = ref(false)
+const uploadError = ref('')
+const useApi = ref(true)
+
+// Check API availability on mount
 onMounted(async () => {
   await sliderStore.fetchAllSlides()
+  useApi.value = await checkApiAvailable()
 })
 
 // Form state
@@ -23,6 +30,7 @@ const formData = ref({
 const openAddForm = () => {
   editingSlide.value = null
   formData.value = { image: '', title: '', caption: '' }
+  uploadError.value = ''
   showForm.value = true
 }
 
@@ -34,13 +42,14 @@ const openEditForm = (slide) => {
     title: slide.title,
     caption: slide.caption
   }
+  uploadError.value = ''
   showForm.value = true
 }
 
 // Save slide
 const saveSlide = async () => {
   if (!formData.value.image) {
-    alert('URL gambar harus diisi!')
+    alert('Gambar harus diisi!')
     return
   }
   
@@ -62,15 +71,49 @@ const deleteSlide = async (id) => {
   }
 }
 
-// Handle file upload
-const handleFileUpload = (event) => {
+// Handle file upload - try API first, fallback to base64
+const handleFileUpload = async (event) => {
   const file = event.target.files[0]
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      formData.value.image = e.target.result
+  if (!file) return
+
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    uploadError.value = 'Ukuran file maksimal 5MB'
+    return
+  }
+
+  isUploading.value = true
+  uploadError.value = ''
+
+  try {
+    if (useApi.value) {
+      // Try upload to backend API
+      const response = await uploadFile(file, 'sliders')
+      if (response.success) {
+        // Use full URL from backend
+        formData.value.image = response.data.full_url || response.data.url
+      } else {
+        throw new Error(response.message || 'Upload gagal')
+      }
+    } else {
+      // Fallback to base64 for localStorage
+      const base64 = await fileToBase64(file)
+      formData.value.image = base64
     }
-    reader.readAsDataURL(file)
+  } catch (error) {
+    console.error('Upload error:', error)
+    uploadError.value = 'Upload gagal. Menggunakan mode offline...'
+    
+    // Fallback to base64
+    try {
+      const base64 = await fileToBase64(file)
+      formData.value.image = base64
+      uploadError.value = ''
+    } catch (e) {
+      uploadError.value = 'Gagal memproses gambar'
+    }
+  } finally {
+    isUploading.value = false
   }
 }
 </script>
@@ -194,8 +237,23 @@ const handleFileUpload = (event) => {
               type="file"
               accept="image/*"
               @change="handleFileUpload"
-              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              :disabled="isUploading"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
             />
+            <!-- Upload Loading -->
+            <div v-if="isUploading" class="mt-2 flex items-center gap-2 text-blue-600">
+              <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span class="text-sm">Mengupload gambar...</span>
+            </div>
+            <!-- Upload Error -->
+            <p v-if="uploadError" class="mt-2 text-sm text-red-600">{{ uploadError }}</p>
+            <!-- API Status -->
+            <p class="mt-1 text-xs text-gray-500">
+              {{ useApi ? '✅ Tersimpan ke server (permanen)' : '⚠️ Mode offline (localStorage)' }}
+            </p>
           </div>
           
           <!-- Preview -->
