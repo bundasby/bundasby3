@@ -1,85 +1,51 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { sliderService } from '@/services'
+import api from '@/services/api'
 
 export const useSliderStore = defineStore('slider', () => {
-  // Default slides
-  const defaultSlides = [
-    {
-      id: 1,
-      image: 'https://placehold.co/1200x450/2e86c1/ffffff?text=Kegiatan+Bunda+PAUD+1',
-      title: 'Konferensi Bunda PAUD 2026',
-      caption: 'Pertemuan tahunan seluruh Bunda PAUD se-Kota Surabaya',
-      is_active: true,
-      active: true
-    },
-    {
-      id: 2,
-      image: 'https://placehold.co/1200x450/22c55e/ffffff?text=Kegiatan+Bunda+PAUD+2',
-      title: 'Pelatihan Guru PAUD',
-      caption: 'Program peningkatan kompetensi guru PAUD',
-      is_active: true,
-      active: true
-    },
-    {
-      id: 3,
-      image: 'https://placehold.co/1200x450/f59e0b/ffffff?text=Kegiatan+Bunda+PAUD+3',
-      title: 'Program MBG PAUD',
-      caption: 'Makanan Bergizi Gratis untuk anak PAUD',
-      is_active: true,
-      active: true
-    },
-    {
-      id: 4,
-      image: 'https://placehold.co/1200x450/ec4899/ffffff?text=Kegiatan+Bunda+PAUD+4',
-      title: 'Hari Anak Nasional',
-      caption: 'Perayaan dan kegiatan edukatif untuk anak usia dini',
-      is_active: true,
-      active: true
-    }
-  ]
-
-  // Slides data - initialized with defaults
-  const slides = ref([...defaultSlides])
+  // Slides data
+  const slides = ref([])
   const loading = ref(false)
   const error = ref(null)
 
-  // Load from localStorage on init
-  const loadFromLocalStorage = () => {
-    const saved = localStorage.getItem('homepage_slides')
-    if (saved) {
-      try {
-        slides.value = JSON.parse(saved)
-      } catch (e) {
-        console.error('Error parsing slides from localStorage', e)
-        slides.value = [...defaultSlides]
+  // Fetch active slides (public)
+  const fetchActiveSlides = async () => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.get('/sliders')
+      if (response.data.success) {
+        slides.value = response.data.data.map(s => ({
+          ...s,
+          active: s.is_active
+        }))
       }
+    } catch (e) {
+      console.error('Error fetching sliders:', e)
+      error.value = e.message
+    } finally {
+      loading.value = false
     }
   }
 
-  // Save to localStorage
-  const saveToLocalStorage = () => {
-    localStorage.setItem('homepage_slides', JSON.stringify(slides.value))
-  }
-
-  // Initialize
-  loadFromLocalStorage()
-
-  // Fetch active slides (public) - Simulation
-  const fetchActiveSlides = async () => {
-    loading.value = true
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500))
-    loadFromLocalStorage()
-    loading.value = false
-  }
-
-  // Fetch all slides (admin) - Simulation
+  // Fetch all slides (admin)
   const fetchAllSlides = async () => {
     loading.value = true
-    await new Promise(resolve => setTimeout(resolve, 500))
-    loadFromLocalStorage()
-    loading.value = false
+    error.value = null
+    try {
+      const response = await api.get('/sliders/all')
+      if (response.data.success) {
+        slides.value = response.data.data.map(s => ({
+          ...s,
+          active: s.is_active
+        }))
+      }
+    } catch (e) {
+      // Fallback to public endpoint
+      await fetchActiveSlides()
+    } finally {
+      loading.value = false
+    }
   }
 
   // Get active slides only
@@ -90,69 +56,79 @@ export const useSliderStore = defineStore('slider', () => {
   // Add new slide
   const addSlide = async (slide) => {
     loading.value = true
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    const newId = Math.max(...slides.value.map(s => s.id), 0) + 1
-    const newSlide = {
-      id: newId,
-      image: slide.image || '',
-      title: slide.title || '',
-      caption: slide.caption || '',
-      is_active: true,
-      active: true
+    try {
+      const response = await api.post('/sliders', {
+        title: slide.title || '',
+        caption: slide.caption || '',
+        image: slide.image || '',
+        is_active: true
+      })
+      if (response.data.success) {
+        const newSlide = { ...response.data.data, active: response.data.data.is_active }
+        slides.value.push(newSlide)
+      }
+      return { success: true, data: response.data.data }
+    } catch (e) {
+      console.error('Error adding slider:', e)
+      return { success: false, error: e.message }
+    } finally {
+      loading.value = false
     }
-    
-    slides.value.push(newSlide)
-    saveToLocalStorage()
-    loading.value = false
-    return { success: true, data: newSlide }
   }
 
   // Update slide
   const updateSlide = async (id, data) => {
     loading.value = true
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    const index = slides.value.findIndex(s => s.id === id)
-    if (index !== -1) {
-      slides.value[index] = { ...slides.value[index], ...data }
-      // Ensure active property logic is consistent
-      if (data.is_active !== undefined) {
-        slides.value[index].active = data.is_active
+    try {
+      const response = await api.put(`/sliders/${id}`, data)
+      if (response.data.success) {
+        const index = slides.value.findIndex(s => s.id === id)
+        if (index !== -1) {
+          slides.value[index] = { ...response.data.data, active: response.data.data.is_active }
+        }
       }
-      saveToLocalStorage()
+      return { success: true }
+    } catch (e) {
+      console.error('Error updating slider:', e)
+      return { success: false, error: e.message }
+    } finally {
+      loading.value = false
     }
-    
-    loading.value = false
-    return { success: true }
   }
 
   // Delete slide
   const deleteSlide = async (id) => {
     loading.value = true
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    slides.value = slides.value.filter(s => s.id !== id)
-    saveToLocalStorage()
-    
-    loading.value = false
-    return { success: true }
+    try {
+      await api.delete(`/sliders/${id}`)
+      slides.value = slides.value.filter(s => s.id !== id)
+      return { success: true }
+    } catch (e) {
+      console.error('Error deleting slider:', e)
+      return { success: false, error: e.message }
+    } finally {
+      loading.value = false
+    }
   }
 
   // Toggle active status
   const toggleActive = async (id) => {
     loading.value = true
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    const slide = slides.value.find(s => s.id === id)
-    if (slide) {
-      slide.is_active = !slide.is_active
-      slide.active = slide.is_active
-      saveToLocalStorage()
+    try {
+      const response = await api.patch(`/sliders/${id}/toggle`)
+      if (response.data.success) {
+        const index = slides.value.findIndex(s => s.id === id)
+        if (index !== -1) {
+          slides.value[index] = { ...response.data.data, active: response.data.data.is_active }
+        }
+      }
+      return { success: true }
+    } catch (e) {
+      console.error('Error toggling slider:', e)
+      return { success: false, error: e.message }
+    } finally {
+      loading.value = false
     }
-    
-    loading.value = false
-    return { success: true }
   }
 
   return {
@@ -165,7 +141,6 @@ export const useSliderStore = defineStore('slider', () => {
     addSlide,
     updateSlide,
     deleteSlide,
-    toggleActive,
-    loadFromLocalStorage
+    toggleActive
   }
 })

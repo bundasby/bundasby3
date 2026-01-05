@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
             ArticleSeeder::class,
             GallerySeeder::class,
             DocumentSeeder::class,
+            SliderSeeder::class,
+            ProfileSeeder::class,
         ]);
     }
 }
