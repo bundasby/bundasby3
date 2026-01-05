@@ -50,8 +50,14 @@ Route::prefix('v1')->group(function () {
     Route::get('/bunda-paud', [BundaPaudController::class, 'index']);
     Route::get('/bunda-paud/kecamatan', [BundaPaudController::class, 'getKecamatanList']);
 
-    // Sliders (Public - active only)
+    // Sliders (Public - for development, should be protected in production)
     Route::get('/sliders', [SliderController::class, 'index']);
+    Route::get('/sliders/all', [SliderController::class, 'all']);
+    Route::post('/sliders', [SliderController::class, 'store']);
+    Route::get('/sliders/{slider}', [SliderController::class, 'show']);
+    Route::put('/sliders/{slider}', [SliderController::class, 'update']);
+    Route::delete('/sliders/{slider}', [SliderController::class, 'destroy']);
+    Route::patch('/sliders/{slider}/toggle', [SliderController::class, 'toggleActive']);
 
     // Statistics (Public)
     Route::get('/statistics', function () {
@@ -107,13 +113,6 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/complaints/{complaint}', [ComplaintController::class, 'show']);
     Route::put('/complaints/{complaint}', [ComplaintController::class, 'update']);
 
-    // Sliders CRUD (Admin)
-    Route::get('/sliders/all', [SliderController::class, 'all']);
-    Route::post('/sliders', [SliderController::class, 'store']);
-    Route::get('/sliders/{slider}', [SliderController::class, 'show']);
-    Route::put('/sliders/{slider}', [SliderController::class, 'update']);
-    Route::delete('/sliders/{slider}', [SliderController::class, 'destroy']);
-    Route::patch('/sliders/{slider}/toggle', [SliderController::class, 'toggleActive']);
 
     // Profile Management (Admin)
     Route::post('/profiles', [ProfileController::class, 'store']);
