@@ -339,6 +339,17 @@ const routes = [
     },
   },
   {
+    path: "/admin/publikasi",
+    name: "admin-publikasi",
+    component: () => import("../views/admin/PublikasiView.vue"),
+    meta: {
+      title: "Publikasi & Informasi",
+      hideNavbar: true,
+      hideFooter: true,
+      requiresAuth: true,
+    },
+  },
+  {
     path: "/admin/articles",
     name: "admin-articles",
     component: () => import("../views/admin/ArticlesView.vue"),
@@ -432,6 +443,39 @@ const routes = [
     component: () => import("../views/admin/BundaPaudAdminView.vue"),
     meta: {
       title: "Kelola Bunda PAUD",
+      hideNavbar: true,
+      hideFooter: true,
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/admin/mitra-paud",
+    name: "admin-mitra-paud",
+    component: () => import("../views/admin/MitraPaudAdminView.vue"),
+    meta: {
+      title: "Kelola Mitra PAUD",
+      hideNavbar: true,
+      hideFooter: true,
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/admin/gugus-tugas",
+    name: "admin-gugus-tugas",
+    component: () => import("../views/admin/GugasTugasAdminView.vue"),
+    meta: {
+      title: "Kelola Gugus Tugas",
+      hideNavbar: true,
+      hideFooter: true,
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/admin/data-paud",
+    name: "admin-data-paud",
+    component: () => import("../views/admin/DataPaudAdminView.vue"),
+    meta: {
+      title: "Data PAUD",
       hideNavbar: true,
       hideFooter: true,
       requiresAuth: true,

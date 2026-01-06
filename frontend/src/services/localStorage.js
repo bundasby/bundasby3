@@ -16,7 +16,15 @@ const KEYS = {
   PROFILES: 'bp_profiles',
   CATEGORIES: 'bp_categories',
   PEMINJAMAN: 'bp_peminjaman',
-  KONSULTASI: 'bp_konsultasi'
+  KONSULTASI: 'bp_konsultasi',
+  INFOGRAFIS: 'bp_infografis',
+  MATERI: 'bp_materi',
+  MAJALAH: 'bp_majalah',
+  BUNDA_TV: 'bp_bunda_tv',
+  PERATURAN: 'bp_peraturan',
+  NPK: 'bp_npk',
+  LAPORAN: 'bp_laporan',
+  FAQ: 'bp_faq'
 }
 
 // Helper functions
@@ -774,6 +782,315 @@ export const konsultasiStorage = {
   }
 }
 
+// ============================================
+// INFOGRAFIS SERVICE
+// ============================================
+
+const DEFAULT_INFOGRAFIS = [
+  {
+    id: '1',
+    title: 'Infografis PAUD Holistik Integratif',
+    description: 'Penjelasan tentang program PAUD HI',
+    imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=800&fit=crop',
+    category: 'program',
+    isActive: true,
+    createdAt: '2025-12-01'
+  },
+  {
+    id: '2',
+    title: 'Gerakan 7 KAIH',
+    description: '7 Kebaikan Anak Indonesia Hebat',
+    imageUrl: 'https://images.unsplash.com/photo-1544776193-352d25ca82cd?w=600&h=800&fit=crop',
+    category: 'gerakan',
+    isActive: true,
+    createdAt: '2025-11-15'
+  }
+]
+
+export const infografisStorage = {
+  getAll(params = {}) {
+    let data = getData(KEYS.INFOGRAFIS, DEFAULT_INFOGRAFIS)
+    if (params.category) {
+      data = data.filter(i => i.category === params.category)
+    }
+    if (params.active) {
+      data = data.filter(i => i.isActive)
+    }
+    return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  },
+  
+  get(id) {
+    return this.getAll().find(i => i.id === id)
+  },
+  
+  create(data) {
+    const all = getData(KEYS.INFOGRAFIS, [])
+    const newItem = {
+      ...data,
+      id: generateId(),
+      isActive: data.isActive ?? true,
+      createdAt: new Date().toISOString().split('T')[0]
+    }
+    all.push(newItem)
+    saveData(KEYS.INFOGRAFIS, all)
+    return newItem
+  },
+  
+  update(id, data) {
+    const all = getData(KEYS.INFOGRAFIS, [])
+    const index = all.findIndex(i => i.id === id)
+    if (index !== -1) {
+      all[index] = { ...all[index], ...data }
+      saveData(KEYS.INFOGRAFIS, all)
+      return all[index]
+    }
+    return null
+  },
+  
+  delete(id) {
+    const all = getData(KEYS.INFOGRAFIS, []).filter(i => i.id !== id)
+    saveData(KEYS.INFOGRAFIS, all)
+    return true
+  }
+}
+
+// ============================================
+// MATERI SERVICE
+// ============================================
+
+const DEFAULT_MATERI = [
+  {
+    id: '1',
+    title: 'Modul Pembelajaran Anak Usia Dini',
+    description: 'Materi pembelajaran untuk guru PAUD',
+    fileUrl: '#',
+    fileType: 'PDF',
+    category: 'modul',
+    isActive: true,
+    createdAt: '2025-12-01'
+  },
+  {
+    id: '2',
+    title: 'Panduan Permainan Edukatif',
+    description: 'Kumpulan permainan edukatif untuk anak PAUD',
+    fileUrl: '#',
+    fileType: 'PDF',
+    category: 'panduan',
+    isActive: true,
+    createdAt: '2025-11-20'
+  }
+]
+
+export const materiStorage = {
+  getAll(params = {}) {
+    let data = getData(KEYS.MATERI, DEFAULT_MATERI)
+    if (params.category) {
+      data = data.filter(m => m.category === params.category)
+    }
+    if (params.active) {
+      data = data.filter(m => m.isActive)
+    }
+    return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  },
+  
+  get(id) {
+    return this.getAll().find(m => m.id === id)
+  },
+  
+  create(data) {
+    const all = getData(KEYS.MATERI, [])
+    const newItem = {
+      ...data,
+      id: generateId(),
+      isActive: data.isActive ?? true,
+      createdAt: new Date().toISOString().split('T')[0]
+    }
+    all.push(newItem)
+    saveData(KEYS.MATERI, all)
+    return newItem
+  },
+  
+  update(id, data) {
+    const all = getData(KEYS.MATERI, [])
+    const index = all.findIndex(m => m.id === id)
+    if (index !== -1) {
+      all[index] = { ...all[index], ...data }
+      saveData(KEYS.MATERI, all)
+      return all[index]
+    }
+    return null
+  },
+  
+  delete(id) {
+    const all = getData(KEYS.MATERI, []).filter(m => m.id !== id)
+    saveData(KEYS.MATERI, all)
+    return true
+  }
+}
+
+// ============================================
+// MAJALAH/BUKU SERVICE
+// ============================================
+
+const DEFAULT_MAJALAH = [
+  {
+    id: '1',
+    title: 'Majalah PAUD Surabaya Edisi 2025',
+    description: 'Majalah resmi Bunda PAUD Kota Surabaya',
+    coverUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop',
+    fileUrl: '#',
+    category: 'majalah',
+    isActive: true,
+    createdAt: '2025-12-01'
+  },
+  {
+    id: '2',
+    title: 'Buku Panduan Orang Tua PAUD',
+    description: 'Panduan untuk orang tua dalam mendampingi anak',
+    coverUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop',
+    fileUrl: '#',
+    category: 'buku',
+    isActive: true,
+    createdAt: '2025-11-20'
+  }
+]
+
+export const majalahStorage = {
+  getAll(params = {}) {
+    let data = getData(KEYS.MAJALAH, DEFAULT_MAJALAH)
+    if (params.category) data = data.filter(m => m.category === params.category)
+    if (params.active) data = data.filter(m => m.isActive)
+    return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  },
+  get(id) { return this.getAll().find(m => m.id === id) },
+  create(data) {
+    const all = getData(KEYS.MAJALAH, [])
+    const newItem = { ...data, id: generateId(), isActive: data.isActive ?? true, createdAt: new Date().toISOString().split('T')[0] }
+    all.push(newItem)
+    saveData(KEYS.MAJALAH, all)
+    return newItem
+  },
+  update(id, data) {
+    const all = getData(KEYS.MAJALAH, [])
+    const index = all.findIndex(m => m.id === id)
+    if (index !== -1) { all[index] = { ...all[index], ...data }; saveData(KEYS.MAJALAH, all); return all[index] }
+    return null
+  },
+  delete(id) { saveData(KEYS.MAJALAH, getData(KEYS.MAJALAH, []).filter(m => m.id !== id)); return true }
+}
+
+// ============================================
+// BUNDA TV SERVICE
+// ============================================
+
+const DEFAULT_BUNDA_TV = [
+  {
+    id: '1',
+    title: 'Workshop Guru PAUD 2025',
+    description: 'Rekaman workshop peningkatan kompetensi guru',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&h=400&fit=crop',
+    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    category: 'workshop',
+    isActive: true,
+    createdAt: '2025-12-15'
+  },
+  {
+    id: '2',
+    title: 'Lagu Anak PAUD Surabaya',
+    description: 'Kompilasi lagu anak PAUD Kota Surabaya',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&h=400&fit=crop',
+    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    category: 'lagu',
+    isActive: true,
+    createdAt: '2025-11-10'
+  }
+]
+
+export const bundaTvStorage = {
+  getAll(params = {}) {
+    let data = getData(KEYS.BUNDA_TV, DEFAULT_BUNDA_TV)
+    if (params.category) data = data.filter(v => v.category === params.category)
+    if (params.active) data = data.filter(v => v.isActive)
+    return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  },
+  get(id) { return this.getAll().find(v => v.id === id) },
+  create(data) {
+    const all = getData(KEYS.BUNDA_TV, [])
+    const newItem = { ...data, id: generateId(), isActive: data.isActive ?? true, createdAt: new Date().toISOString().split('T')[0] }
+    all.push(newItem)
+    saveData(KEYS.BUNDA_TV, all)
+    return newItem
+  },
+  update(id, data) {
+    const all = getData(KEYS.BUNDA_TV, [])
+    const index = all.findIndex(v => v.id === id)
+    if (index !== -1) { all[index] = { ...all[index], ...data }; saveData(KEYS.BUNDA_TV, all); return all[index] }
+    return null
+  },
+  delete(id) { saveData(KEYS.BUNDA_TV, getData(KEYS.BUNDA_TV, []).filter(v => v.id !== id)); return true }
+}
+
+// ============================================
+// PERATURAN SERVICE
+// ============================================
+const DEFAULT_PERATURAN = [
+  { id: '1', title: 'Perwal Surabaya No. 1 Tahun 2024', description: 'Tentang Penyelenggaraan PAUD', fileUrl: '#', category: 'perwal', isActive: true, createdAt: '2024-01-15' },
+  { id: '2', title: 'Permendikbud No. 137 Tahun 2014', description: 'Standar Nasional PAUD', fileUrl: '#', category: 'permendikbud', isActive: true, createdAt: '2014-10-14' }
+]
+export const peraturanStorage = {
+  getAll(params = {}) { let data = getData(KEYS.PERATURAN, DEFAULT_PERATURAN); if (params.category) data = data.filter(p => p.category === params.category); if (params.active) data = data.filter(p => p.isActive); return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) },
+  get(id) { return this.getAll().find(p => p.id === id) },
+  create(data) { const all = getData(KEYS.PERATURAN, []); const newItem = { ...data, id: generateId(), isActive: data.isActive ?? true, createdAt: new Date().toISOString().split('T')[0] }; all.push(newItem); saveData(KEYS.PERATURAN, all); return newItem },
+  update(id, data) { const all = getData(KEYS.PERATURAN, []); const i = all.findIndex(p => p.id === id); if (i !== -1) { all[i] = { ...all[i], ...data }; saveData(KEYS.PERATURAN, all); return all[i] } return null },
+  delete(id) { saveData(KEYS.PERATURAN, getData(KEYS.PERATURAN, []).filter(p => p.id !== id)); return true }
+}
+
+// ============================================
+// NPK SERVICE
+// ============================================
+const DEFAULT_NPK = [
+  { id: '1', title: 'NPK Penyelenggaraan PAUD', description: 'Norma, Prosedur, Kriteria PAUD', fileUrl: '#', category: 'npk', isActive: true, createdAt: '2024-06-01' },
+  { id: '2', title: 'SOP Layanan PAUD', description: 'Standar Operasional Prosedur', fileUrl: '#', category: 'sop', isActive: true, createdAt: '2024-03-15' }
+]
+export const npkStorage = {
+  getAll(params = {}) { let data = getData(KEYS.NPK, DEFAULT_NPK); if (params.category) data = data.filter(n => n.category === params.category); if (params.active) data = data.filter(n => n.isActive); return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) },
+  get(id) { return this.getAll().find(n => n.id === id) },
+  create(data) { const all = getData(KEYS.NPK, []); const newItem = { ...data, id: generateId(), isActive: data.isActive ?? true, createdAt: new Date().toISOString().split('T')[0] }; all.push(newItem); saveData(KEYS.NPK, all); return newItem },
+  update(id, data) { const all = getData(KEYS.NPK, []); const i = all.findIndex(n => n.id === id); if (i !== -1) { all[i] = { ...all[i], ...data }; saveData(KEYS.NPK, all); return all[i] } return null },
+  delete(id) { saveData(KEYS.NPK, getData(KEYS.NPK, []).filter(n => n.id !== id)); return true }
+}
+
+// ============================================
+// LAPORAN SERVICE
+// ============================================
+const DEFAULT_LAPORAN = [
+  { id: '1', title: 'Laporan Tahunan PAUD 2024', description: 'Laporan kegiatan dan capaian tahun 2024', fileUrl: '#', category: 'tahunan', isActive: true, createdAt: '2024-12-31' },
+  { id: '2', title: 'Laporan Semester Ganjil 2024', description: 'Laporan kegiatan semester 1', fileUrl: '#', category: 'semester', isActive: true, createdAt: '2024-06-30' }
+]
+export const laporanStorage = {
+  getAll(params = {}) { let data = getData(KEYS.LAPORAN, DEFAULT_LAPORAN); if (params.category) data = data.filter(l => l.category === params.category); if (params.active) data = data.filter(l => l.isActive); return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) },
+  get(id) { return this.getAll().find(l => l.id === id) },
+  create(data) { const all = getData(KEYS.LAPORAN, []); const newItem = { ...data, id: generateId(), isActive: data.isActive ?? true, createdAt: new Date().toISOString().split('T')[0] }; all.push(newItem); saveData(KEYS.LAPORAN, all); return newItem },
+  update(id, data) { const all = getData(KEYS.LAPORAN, []); const i = all.findIndex(l => l.id === id); if (i !== -1) { all[i] = { ...all[i], ...data }; saveData(KEYS.LAPORAN, all); return all[i] } return null },
+  delete(id) { saveData(KEYS.LAPORAN, getData(KEYS.LAPORAN, []).filter(l => l.id !== id)); return true }
+}
+
+// ============================================
+// FAQ SERVICE
+// ============================================
+const DEFAULT_FAQ = [
+  { id: '1', question: 'Bagaimana cara mendaftarkan anak ke PAUD?', answer: 'Pendaftaran dapat dilakukan melalui sekolah PAUD terdekat atau melalui website resmi.', category: 'pendaftaran', order: 1, isActive: true },
+  { id: '2', question: 'Berapa usia minimal masuk PAUD?', answer: 'Usia minimal untuk masuk PAUD adalah 3 tahun untuk KB dan 5 tahun untuk TK.', category: 'pendaftaran', order: 2, isActive: true },
+  { id: '3', question: 'Apa saja program unggulan PAUD Surabaya?', answer: 'Program unggulan meliputi PAUD HI, Gerakan 7 KAIH, dan Digitalisasi Pembelajaran.', category: 'program', order: 3, isActive: true }
+]
+export const faqStorage = {
+  getAll(params = {}) { let data = getData(KEYS.FAQ, DEFAULT_FAQ); if (params.category) data = data.filter(f => f.category === params.category); if (params.active) data = data.filter(f => f.isActive); return data.sort((a, b) => a.order - b.order) },
+  get(id) { return this.getAll().find(f => f.id === id) },
+  create(data) { const all = getData(KEYS.FAQ, []); const newItem = { ...data, id: generateId(), isActive: data.isActive ?? true, order: data.order || all.length + 1 }; all.push(newItem); saveData(KEYS.FAQ, all); return newItem },
+  update(id, data) { const all = getData(KEYS.FAQ, []); const i = all.findIndex(f => f.id === id); if (i !== -1) { all[i] = { ...all[i], ...data }; saveData(KEYS.FAQ, all); return all[i] } return null },
+  delete(id) { saveData(KEYS.FAQ, getData(KEYS.FAQ, []).filter(f => f.id !== id)); return true }
+}
+
 export default {
   initializeData,
   settings: settingsStorage,
@@ -787,6 +1104,13 @@ export default {
   profiles: profilesStorage,
   categories: categoriesStorage,
   peminjaman: peminjamanStorage,
-  konsultasi: konsultasiStorage
+  konsultasi: konsultasiStorage,
+  infografis: infografisStorage,
+  materi: materiStorage,
+  majalah: majalahStorage,
+  bundaTv: bundaTvStorage,
+  peraturan: peraturanStorage,
+  npk: npkStorage,
+  laporan: laporanStorage,
+  faq: faqStorage
 }
-

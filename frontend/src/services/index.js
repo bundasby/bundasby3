@@ -15,6 +15,7 @@ import {
   statisticsStorage,
   profilesStorage
 } from './localStorage'
+import api, { checkApiAvailable, uploadFile } from './api'
 
 // Initialize default data on first load
 initializeData()
@@ -256,4 +257,10 @@ export const settingsService = {
   update(data) {
     return settingsStorage.update(data)
   }
+}
+
+export {
+  api,
+  checkApiAvailable,
+  uploadFile
 }

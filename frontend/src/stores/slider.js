@@ -61,13 +61,16 @@ export const useSliderStore = defineStore('slider', () => {
         title: slide.title || '',
         caption: slide.caption || '',
         image: slide.image || '',
+        button_text: slide.buttonText || '',
+        button_link: slide.buttonLink || '',
         is_active: true
       })
       if (response.data.success) {
         const newSlide = { ...response.data.data, active: response.data.data.is_active }
         slides.value.push(newSlide)
+        return { success: true, data: newSlide }
       }
-      return { success: true, data: response.data.data }
+      return { success: false, error: response.data.message }
     } catch (e) {
       console.error('Error adding slider:', e)
       return { success: false, error: e.message }
@@ -80,14 +83,19 @@ export const useSliderStore = defineStore('slider', () => {
   const updateSlide = async (id, data) => {
     loading.value = true
     try {
-      const response = await api.put(`/sliders/${id}`, data)
+      const response = await api.put(`/sliders/${id}`, {
+        ...data,
+        is_active: data.active !== undefined ? data.active : true
+      })
+      
       if (response.data.success) {
         const index = slides.value.findIndex(s => s.id === id)
         if (index !== -1) {
           slides.value[index] = { ...response.data.data, active: response.data.data.is_active }
         }
+        return { success: true }
       }
-      return { success: true }
+      return { success: false, error: response.data.message }
     } catch (e) {
       console.error('Error updating slider:', e)
       return { success: false, error: e.message }
@@ -121,8 +129,9 @@ export const useSliderStore = defineStore('slider', () => {
         if (index !== -1) {
           slides.value[index] = { ...response.data.data, active: response.data.data.is_active }
         }
+        return { success: true }
       }
-      return { success: true }
+      return { success: false, error: response.data.message }
     } catch (e) {
       console.error('Error toggling slider:', e)
       return { success: false, error: e.message }
