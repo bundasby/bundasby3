@@ -27,9 +27,9 @@ const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// Hero Slider - using store
+// Hero Slider - using localStorage (like admin panel)
 const currentSlide = ref(0)
-const slides = computed(() => sliderStore.getActiveSlides())
+const slides = ref([])
 
 const nextSlide = () => {
   if (slides.value.length > 0) {
@@ -45,9 +45,21 @@ const prevSlide = () => {
 
 // Auto slide
 let slideInterval = null
-onMounted(async () => {
-  // Fetch slides from API
-  await sliderStore.fetchActiveSlides()
+onMounted(() => {
+  // Load slides from localStorage (same as admin panel)
+  const savedSliders = localStorage.getItem('bp_sliders')
+  if (savedSliders) {
+    const allSlides = JSON.parse(savedSliders)
+    slides.value = allSlides.filter(s => s.active !== false)
+  } else {
+    // Default slides if localStorage is empty
+    slides.value = [
+      { id: 1, title: 'Selamat Datang', caption: 'Website Bunda PAUD Kota Surabaya', image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=1200&h=600&fit=crop', active: true },
+      { id: 2, title: 'Program PAUD Berkualitas', caption: 'Membangun generasi emas Indonesia', image: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=1200&h=600&fit=crop', active: true },
+      { id: 3, title: 'PAUD Holistik Integratif', caption: 'Layanan terpadu untuk anak usia dini', image: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=1200&h=600&fit=crop', active: true },
+    ]
+    localStorage.setItem('bp_sliders', JSON.stringify(slides.value))
+  }
   slideInterval = setInterval(nextSlide, 5000)
 })
 
