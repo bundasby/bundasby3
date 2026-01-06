@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
             DocumentSeeder::class,
             SliderSeeder::class,
             ProfileSeeder::class,
+            ProgramSeeder::class,
+            DataPaudSeeder::class,
         ]);
     }
 }

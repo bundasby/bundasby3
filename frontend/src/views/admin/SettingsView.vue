@@ -66,37 +66,46 @@ const saveSlide = async () => {
 
   saving.value = true;
   try {
-    // 1. Upload image if file exists
-    if (sliderFile.value) {
-      const uploadResult = await uploadFile(sliderFile.value, 'sliders');
-      // Check if upload was successful
-      if (uploadResult && (uploadResult.success || uploadResult.url)) {
-         // Handle both standard success response and direct URL return
-         sliderFormData.value.image = uploadResult.url || uploadResult.data?.url;
-      } else {
-         throw new Error("Gagal upload gambar ke server.");
-      }
+    // If file is uploaded, convert to base64 (like Program Kerja)
+    if (sliderFile.value && !sliderFormData.value.image.startsWith('data:')) {
+      const reader = new FileReader();
+      const base64Promise = new Promise((resolve) => {
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(sliderFile.value);
+      });
+      sliderFormData.value.image = await base64Promise;
     }
 
-    // 2. Save to Database (Backend)
-    let result;
+    // Save to localStorage (like Program Kerja)
+    let slides = JSON.parse(localStorage.getItem('bp_sliders') || '[]');
+    
     if (editingSlide.value) {
-      result = await sliderStore.updateSlide(editingSlide.value.id, sliderFormData.value);
+      // Update existing slide
+      const index = slides.findIndex(s => s.id === editingSlide.value.id);
+      if (index !== -1) {
+        slides[index] = { ...slides[index], ...sliderFormData.value };
+      }
     } else {
-      result = await sliderStore.addSlide(sliderFormData.value);
+      // Add new slide
+      const newId = slides.length > 0 ? Math.max(...slides.map(s => s.id)) + 1 : 1;
+      slides.push({ 
+        id: newId, 
+        ...sliderFormData.value, 
+        active: true,
+        createdAt: new Date().toISOString() 
+      });
     }
-
-    // 3. Check Result
-    if (result.success) {
-      showSliderForm.value = false;
-      sliderFormData.value = { image: "", title: "", caption: "" };
-      sliderFile.value = null;
-      editingSlide.value = null;
-      alert("Berhasil menyimpan slide!");
-      await sliderStore.fetchAllSlides();
-    } else {
-      throw new Error(result.error || "Gagal menyimpan ke database.");
-    }
+    
+    localStorage.setItem('bp_sliders', JSON.stringify(slides));
+    
+    // Update store
+    sliderStore.slides = slides;
+    
+    showSliderForm.value = false;
+    sliderFormData.value = { image: "", title: "", caption: "" };
+    sliderFile.value = null;
+    editingSlide.value = null;
+    alert("Berhasil menyimpan slide!");
     
   } catch (error) {
     console.error("Error saving slide:", error);
@@ -106,9 +115,22 @@ const saveSlide = async () => {
   }
 };
 
-const deleteSlide = async (id) => {
+const deleteSlide = (id) => {
   if (confirm("Yakin ingin menghapus slide ini?")) {
-    await sliderStore.deleteSlide(id);
+    let slides = JSON.parse(localStorage.getItem('bp_sliders') || '[]');
+    slides = slides.filter(s => s.id !== id);
+    localStorage.setItem('bp_sliders', JSON.stringify(slides));
+    sliderStore.slides = slides;
+  }
+};
+
+const toggleSlideActive = (id) => {
+  let slides = JSON.parse(localStorage.getItem('bp_sliders') || '[]');
+  const index = slides.findIndex(s => s.id === id);
+  if (index !== -1) {
+    slides[index].active = !slides[index].active;
+    localStorage.setItem('bp_sliders', JSON.stringify(slides));
+    sliderStore.slides = slides;
   }
 };
 
@@ -239,7 +261,20 @@ const saveSettings = async () => {
 
 // ========== LIFECYCLE ==========
 onMounted(async () => {
-  await sliderStore.fetchAllSlides();
+  // Load sliders from localStorage (like Program Kerja)
+  const savedSliders = localStorage.getItem('bp_sliders');
+  if (savedSliders) {
+    sliderStore.slides = JSON.parse(savedSliders);
+  } else {
+    // Initialize with default data if empty
+    const defaultSliders = [
+      { id: 1, title: 'Selamat Datang', caption: 'Website Bunda PAUD Kota Surabaya', image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=1200&h=600&fit=crop', active: true },
+      { id: 2, title: 'Program PAUD Berkualitas', caption: 'Membangun generasi emas Indonesia', image: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=1200&h=600&fit=crop', active: true },
+    ];
+    localStorage.setItem('bp_sliders', JSON.stringify(defaultSliders));
+    sliderStore.slides = defaultSliders;
+  }
+  
   const data = settingsService.get();
   settings.value = { ...settings.value, ...data };
   
@@ -307,7 +342,7 @@ onMounted(async () => {
               <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">{{ slide.caption || "Tidak ada caption" }}</p>
               <div class="flex gap-2">
                 <button @click="openEditSlideForm(slide)" class="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded hover:bg-blue-200">Edit</button>
-                <button @click="sliderStore.toggleActive(slide.id)" class="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-600 rounded hover:bg-gray-200">{{ slide.active ? "Nonaktifkan" : "Aktifkan" }}</button>
+                <button @click="toggleSlideActive(slide.id)" class="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-600 rounded hover:bg-gray-200">{{ slide.active ? "Nonaktifkan" : "Aktifkan" }}</button>
                 <button @click="deleteSlide(slide.id)" class="px-3 py-1 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200">Hapus</button>
               </div>
             </div>
