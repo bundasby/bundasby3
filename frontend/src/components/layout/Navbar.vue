@@ -1,11 +1,19 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { articleService, documentService } from "@/services";
 
 const router = useRouter();
 const route = useRoute();
 const appStore = useAppStore();
+
+// Search state
+const isSearchOpen = ref(false);
+const searchQuery = ref("");
+const searchResults = ref([]);
+const isSearching = ref(false);
+const searchInputRef = ref(null);
 
 const navItems = [
   { name: "Beranda", path: "/" },
@@ -89,6 +97,111 @@ const toggleDropdown = (name) => {
 const closeDropdown = () => {
   activeDropdown.value = null;
 };
+
+// Search functions
+const openSearch = () => {
+  isSearchOpen.value = true;
+  setTimeout(() => {
+    searchInputRef.value?.focus();
+  }, 100);
+};
+
+const closeSearch = () => {
+  isSearchOpen.value = false;
+  searchQuery.value = "";
+  searchResults.value = [];
+};
+
+const handleClickOutside = (event) => {
+  const searchContainer = document.querySelector('.search-container');
+  if (searchContainer && !searchContainer.contains(event.target)) {
+    closeSearch();
+  }
+};
+
+// Debounced search
+let searchTimeout = null;
+const performSearch = async () => {
+  if (!searchQuery.value || searchQuery.value.length < 2) {
+    searchResults.value = [];
+    return;
+  }
+
+  isSearching.value = true;
+  
+  try {
+    const query = searchQuery.value.toLowerCase();
+    const results = [];
+
+    // Search articles
+    const articlesRes = await articleService.getAll({ search: query });
+    const articles = articlesRes.data?.data || articlesRes.data || [];
+    articles.slice(0, 3).forEach(article => {
+      results.push({
+        type: 'berita',
+        title: article.title,
+        path: `/berita/${article.slug}`,
+        icon: '📰'
+      });
+    });
+
+    // Search in menu items
+    const searchInMenu = (items, parentName = '') => {
+      items.forEach(item => {
+        if (item.name.toLowerCase().includes(query)) {
+          results.push({
+            type: 'halaman',
+            title: parentName ? `${parentName} → ${item.name}` : item.name,
+            path: item.path,
+            icon: '📄'
+          });
+        }
+        if (item.children) {
+          searchInMenu(item.children, item.name);
+        }
+      });
+    };
+    searchInMenu(navItems);
+
+    searchResults.value = results.slice(0, 8);
+  } catch (error) {
+    console.error('Search error:', error);
+  } finally {
+    isSearching.value = false;
+  }
+};
+
+watch(searchQuery, () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(performSearch, 300);
+});
+
+const goToResult = (result) => {
+  router.push(result.path);
+  closeSearch();
+};
+
+const goToFullSearch = () => {
+  router.push({ path: '/cari', query: { q: searchQuery.value } });
+  closeSearch();
+};
+
+// Handle Escape key to close search
+const handleKeydown = (e) => {
+  if (e.key === 'Escape') {
+    closeSearch();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+  document.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+  document.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 <template>
@@ -220,26 +333,115 @@ const closeDropdown = () => {
 
         <!-- Right Side Actions -->
         <div class="flex items-center gap-2">
-          <!-- Search Button -->
-          <router-link
-            to="/cari"
-            class="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            title="Cari"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <!-- Inline Search Bar -->
+          <div class="search-container relative">
+            <!-- Collapsed: Search Icon Button -->
+            <button
+              v-if="!isSearchOpen"
+              @click.stop="openSearch"
+              class="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title="Cari (Ctrl+K)"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+
+            <!-- Expanded: Search Input -->
+            <div 
+              v-else
+              class="flex items-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden animate-fade-in"
+              style="width: 280px;"
+            >
+              <svg class="w-5 h-5 ml-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                ref="searchInputRef"
+                v-model="searchQuery"
+                type="text"
+                placeholder="Cari..."
+                class="flex-1 px-3 py-2 text-sm bg-transparent border-0 focus:outline-none focus:ring-0 text-gray-700 dark:text-gray-300 placeholder-gray-400"
+                @keydown.enter="goToFullSearch"
+                @keydown.escape="closeSearch"
               />
-            </svg>
-          </router-link>
+              <button
+                v-if="searchQuery"
+                @click="searchQuery = ''"
+                class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <button
+                @click="closeSearch"
+                class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 border-l border-gray-200 dark:border-gray-700"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Search Results Dropdown -->
+            <div
+              v-if="isSearchOpen && (searchResults.length > 0 || isSearching || searchQuery.length >= 2)"
+              class="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+            >
+              <!-- Loading State -->
+              <div v-if="isSearching" class="p-4 text-center text-gray-500">
+                <svg class="animate-spin h-5 w-5 mx-auto mb-2" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-sm">Mencari...</span>
+              </div>
+
+              <!-- Results -->
+              <div v-else-if="searchResults.length > 0">
+                <div
+                  v-for="(result, index) in searchResults"
+                  :key="index"
+                  @click="goToResult(result)"
+                  class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0 transition-colors"
+                >
+                  <div class="flex items-center gap-3">
+                    <span class="text-xl">{{ result.icon }}</span>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ result.title }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 capitalize">{{ result.type }}</p>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- View All Results -->
+                <button
+                  @click="goToFullSearch"
+                  class="w-full px-4 py-3 text-sm text-primary-600 dark:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium text-center transition-colors"
+                >
+                  Lihat semua hasil untuk "{{ searchQuery }}" →
+                </button>
+              </div>
+
+              <!-- No Results -->
+              <div v-else-if="searchQuery.length >= 2 && !isSearching" class="p-4 text-center text-gray-500">
+                <svg class="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm">Tidak ada hasil untuk "{{ searchQuery }}"</p>
+                <button
+                  @click="goToFullSearch"
+                  class="mt-2 text-sm text-primary-600 dark:text-primary-400 hover:underline"
+                >
+                  Cari di halaman pencarian →
+                </button>
+              </div>
+            </div>
+          </div>
 
           <!-- Dark Mode Toggle -->
           <button
