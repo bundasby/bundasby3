@@ -1,0 +1,29 @@
+{
+  "name": "Bunda PAUD Kota Surabaya",
+  "short_name": "Bunda PAUD",
+  "description": "Website Bunda PAUD Kota Surabaya - PAUD Holistik Integratif",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo-bunda-paud.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-bunda-paud.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "government"],
+  "lang": "id",
+  "dir": "ltr",
+  "screenshots": [],
+  "prefer_related_applications": false
+}

@@ -24,27 +24,18 @@ const handleSubmit = async () => {
   error.value = ''
   loading.value = true
 
-  // Demo credentials check (works without backend)
-  const DEMO_EMAIL = 'admin@bundapaud.surabaya.go.id'
-  const DEMO_PASSWORD = 'password123'
-
   try {
-    // Try real API login first
-    await authService.login(form.value)
+    // Use the new authService which handles multi-user with roles
+    const result = await authService.login(form.value)
+    
+    // Get user role for potential role-based redirect
+    const user = result.data.user
+    console.log('Login successful:', user.name, '- Role:', user.role?.name)
+    
+    // Redirect to dashboard
     router.push('/admin/dashboard')
   } catch (e) {
-    // If API fails, check demo credentials
-    if (form.value.email === DEMO_EMAIL && form.value.password === DEMO_PASSWORD) {
-      // Demo mode - set fake token
-      localStorage.setItem('auth_token', 'demo_token_bundapaud_2026')
-      localStorage.setItem('demo_user', JSON.stringify({
-        name: 'Admin Demo',
-        email: DEMO_EMAIL
-      }))
-      router.push('/admin/dashboard')
-    } else {
-      error.value = 'Email atau password salah'
-    }
+    error.value = e.message || 'Email atau password salah'
   } finally {
     loading.value = false
   }
@@ -131,9 +122,13 @@ const handleSubmit = async () => {
 
       <!-- Demo Credentials -->
       <div class="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-        <p class="text-sm text-amber-700 dark:text-amber-400">
-          <strong>Demo:</strong> admin@bundapaud.surabaya.go.id / password123
-        </p>
+        <p class="text-sm font-medium text-amber-800 dark:text-amber-300 mb-2">Demo Accounts:</p>
+        <div class="text-xs text-amber-700 dark:text-amber-400 space-y-1">
+          <p>🔑 <strong>Super Admin:</strong> superadmin@bundapaud.surabaya.go.id</p>
+          <p>👤 <strong>Admin:</strong> admin@bundapaud.surabaya.go.id</p>
+          <p>🏛️ <strong>Bunda Kota:</strong> bundakota@bundapaud.surabaya.go.id</p>
+          <p class="text-amber-600 dark:text-amber-500 mt-2">Password semua: password123</p>
+        </div>
       </div>
     </div>
   </div>

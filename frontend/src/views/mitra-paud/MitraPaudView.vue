@@ -63,21 +63,37 @@ const mitraList = ref([])
 const searchQuery = ref('')
 const filterJenis = ref('')
 
-// Load mitra from localStorage
-const loadMitra = () => {
-  const saved = localStorage.getItem('bp_mitra_paud')
-  if (saved) {
-    mitraList.value = JSON.parse(saved)
-  } else {
-    // Default demo data
-    mitraList.value = [
-      { id: 1, namaLembaga: 'Dinas Pendidikan Kota Surabaya', kategori: 'Pemerintah & Kesehatan', jenisDukungan: ['Advokasi', 'Sosialisasi'], status: 'approved' },
-      { id: 2, namaLembaga: 'HIMPAUDI Kota Surabaya', kategori: 'Organisasi Profesi & Seni', jenisDukungan: ['Pelatihan Guru'], status: 'approved' },
-      { id: 3, namaLembaga: 'Universitas Negeri Surabaya', kategori: 'Akademisi & Unsur Civil Society', jenisDukungan: ['Gizi & Stunting'], status: 'approved' },
-      { id: 4, namaLembaga: 'Bank Jatim', kategori: 'Dunia Usaha & Industri (DUDI)', jenisDukungan: ['Bantuan Sarana'], status: 'approved' },
-      { id: 5, namaLembaga: 'IGTKI Kota Surabaya', kategori: 'Organisasi Profesi & Seni', jenisDukungan: ['Pelatihan Guru'], status: 'approved' },
-      { id: 6, namaLembaga: 'Dinas Kesehatan Kota Surabaya', kategori: 'Pemerintah & Kesehatan', jenisDukungan: ['Gizi & Stunting'], status: 'approved' },
-    ]
+// Default demo data for fallback
+const defaultMitraList = [
+  { id: 1, namaLembaga: 'Dinas Pendidikan Kota Surabaya', kategori: 'Pemerintah & Kesehatan', jenisDukungan: ['Advokasi', 'Sosialisasi'], status: 'approved' },
+  { id: 2, namaLembaga: 'HIMPAUDI Kota Surabaya', kategori: 'Organisasi Profesi & Seni', jenisDukungan: ['Pelatihan Guru'], status: 'approved' },
+  { id: 3, namaLembaga: 'Universitas Negeri Surabaya', kategori: 'Akademisi & Unsur Civil Society', jenisDukungan: ['Gizi & Stunting'], status: 'approved' },
+  { id: 4, namaLembaga: 'Bank Jatim', kategori: 'Dunia Usaha & Industri (DUDI)', jenisDukungan: ['Bantuan Sarana'], status: 'approved' },
+  { id: 5, namaLembaga: 'IGTKI Kota Surabaya', kategori: 'Organisasi Profesi & Seni', jenisDukungan: ['Pelatihan Guru'], status: 'approved' },
+  { id: 6, namaLembaga: 'Dinas Kesehatan Kota Surabaya', kategori: 'Pemerintah & Kesehatan', jenisDukungan: ['Gizi & Stunting'], status: 'approved' },
+]
+
+// Import mitraPaudService
+import { mitraPaudService } from '@/services'
+
+// Load mitra from API
+const loadMitra = async () => {
+  try {
+    const response = await mitraPaudService.getApproved()
+    if (response.success && response.data && response.data.length > 0) {
+      mitraList.value = response.data.map(item => ({
+        id: item.id,
+        namaLembaga: item.nama_organisasi || item.namaOrganisasi || item.namaLembaga || 'Unknown',
+        kategori: item.kategori || 'Lainnya',
+        jenisDukungan: item.bentuk_kolaborasi || item.bentukKolaborasi || [],
+        status: item.status || 'approved'
+      }))
+    } else {
+      mitraList.value = defaultMitraList
+    }
+  } catch (error) {
+    console.error('Failed to load mitra:', error)
+    mitraList.value = defaultMitraList
   }
 }
 
@@ -93,20 +109,35 @@ const filteredMitra = computed(() => {
 
 const handleSubmit = async () => {
   loading.value = true
-  await new Promise(resolve => setTimeout(resolve, 1500))
   
-  // Save to localStorage
-  const newMitra = {
-    id: Date.now(),
-    ...form.value,
-    status: 'pending',
-    createdAt: new Date().toISOString()
+  try {
+    // Prepare data for API
+    const submitData = {
+      nama_responden: form.value.namaResponden,
+      jabatan_responden: form.value.jabatanResponden,
+      nomor_hp_responden: form.value.nomorHpResponden,
+      nama_organisasi: form.value.namaOrganisasi,
+      kategori: form.value.kategori,
+      alamat_kantor: form.value.alamatKantor,
+      telepon_organisasi: form.value.teleponOrganisasi,
+      email_organisasi: form.value.emailOrganisasi,
+      website_sosmed: form.value.websiteSosmed,
+      nama_direktur: form.value.namaDirektur,
+      tujuan_organisasi: form.value.tujuanOrganisasi,
+      bentuk_kolaborasi: form.value.bentukKolaborasi,
+      kolaborasi_lainnya: form.value.kolaborasiLainnya,
+      catatan_kolaborasi: form.value.catatanKolaborasi,
+      link_dokumen_pendukung: form.value.linkDokumenPendukung
+    }
+    
+    await mitraPaudService.submit(submitData)
+    submitted.value = true
+  } catch (error) {
+    console.error('Failed to submit:', error)
+    alert('Gagal mengirim pendaftaran. Silakan coba lagi.')
+  } finally {
+    loading.value = false
   }
-  mitraList.value.push(newMitra)
-  localStorage.setItem('bp_mitra_paud', JSON.stringify(mitraList.value))
-  
-  submitted.value = true
-  loading.value = false
 }
 
 const resetForm = () => {

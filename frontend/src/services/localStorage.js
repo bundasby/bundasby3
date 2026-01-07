@@ -24,7 +24,9 @@ const KEYS = {
   PERATURAN: 'bp_peraturan',
   NPK: 'bp_npk',
   LAPORAN: 'bp_laporan',
-  FAQ: 'bp_faq'
+  FAQ: 'bp_faq',
+  USERS: 'bp_users',
+  ROLES: 'bp_roles'
 }
 
 // Helper functions
@@ -1078,6 +1080,8 @@ export const laporanStorage = {
 // ============================================
 // FAQ SERVICE
 // ============================================
+// FAQ STORAGE
+// ============================================
 const DEFAULT_FAQ = [
   { id: '1', question: 'Bagaimana cara mendaftarkan anak ke PAUD?', answer: 'Pendaftaran dapat dilakukan melalui sekolah PAUD terdekat atau melalui website resmi.', category: 'pendaftaran', order: 1, isActive: true },
   { id: '2', question: 'Berapa usia minimal masuk PAUD?', answer: 'Usia minimal untuk masuk PAUD adalah 3 tahun untuk KB dan 5 tahun untuk TK.', category: 'pendaftaran', order: 2, isActive: true },
@@ -1089,6 +1093,167 @@ export const faqStorage = {
   create(data) { const all = getData(KEYS.FAQ, []); const newItem = { ...data, id: generateId(), isActive: data.isActive ?? true, order: data.order || all.length + 1 }; all.push(newItem); saveData(KEYS.FAQ, all); return newItem },
   update(id, data) { const all = getData(KEYS.FAQ, []); const i = all.findIndex(f => f.id === id); if (i !== -1) { all[i] = { ...all[i], ...data }; saveData(KEYS.FAQ, all); return all[i] } return null },
   delete(id) { saveData(KEYS.FAQ, getData(KEYS.FAQ, []).filter(f => f.id !== id)); return true }
+}
+
+// ============================================
+// ROLES SERVICE
+// ============================================
+
+const DEFAULT_ROLES = [
+  { id: 1, code: 'super_admin', name: 'Super Admin', level: 1, description: 'Akses penuh ke semua fitur termasuk manajemen pengguna', permissions: ['*'] },
+  { id: 2, code: 'admin', name: 'Admin', level: 2, description: 'Akses ke semua konten dan pengaturan', permissions: ['content.*', 'settings.*'] },
+  { id: 3, code: 'bunda_kota', name: 'Bunda PAUD Kota', level: 3, description: 'Dashboard dan laporan tingkat kota', permissions: ['dashboard.view', 'reports.kota'] },
+  { id: 4, code: 'bunda_kecamatan', name: 'Bunda PAUD Kecamatan', level: 4, description: 'Dashboard dan laporan tingkat kecamatan', permissions: ['dashboard.view', 'reports.kecamatan'] },
+  { id: 5, code: 'bunda_kelurahan', name: 'Bunda PAUD Kelurahan', level: 5, description: 'Dashboard dan laporan tingkat kelurahan', permissions: ['dashboard.view', 'reports.kelurahan'] },
+  { id: 6, code: 'gugus_tugas', name: 'Gugus Tugas PAUD HI', level: 6, description: 'Kelola data gugus tugas PAUD HI', permissions: ['gugus_tugas.*'] },
+  { id: 7, code: 'mitra_paud', name: 'Mitra PAUD', level: 7, description: 'Kelola data mitra PAUD', permissions: ['mitra.*'] },
+  { id: 8, code: 'forum_komunikasi', name: 'Forum Komunikasi PAUD', level: 8, description: 'Kelola forum komunikasi PAUD', permissions: ['forum.*'] },
+  { id: 9, code: 'kelompok_kerja', name: 'Kelompok Kerja', level: 9, description: 'Kelola kegiatan kelompok kerja', permissions: ['pokja.*'] },
+  { id: 10, code: 'juri_apresiasi', name: 'Juri Apresiasi', level: 10, description: 'Kelola penilaian apresiasi', permissions: ['apresiasi.*'] },
+  { id: 11, code: 'kemendikdasmen', name: 'Kemendikdasmen', level: 11, description: 'Akses view only dan laporan', permissions: ['dashboard.view', 'reports.view'] }
+]
+
+export const rolesStorage = {
+  getAll() {
+    return getData(KEYS.ROLES, DEFAULT_ROLES).sort((a, b) => a.level - b.level)
+  },
+  
+  get(id) {
+    return this.getAll().find(r => r.id === id)
+  },
+  
+  getByCode(code) {
+    return this.getAll().find(r => r.code === code)
+  }
+}
+
+// ============================================
+// USERS SERVICE
+// ============================================
+
+const DEFAULT_USERS = [
+  { id: 1, name: 'Super Admin', email: 'superadmin@bundapaud.surabaya.go.id', password: 'password123', phone: '081234567890', role_id: 1, kecamatan_id: null, kelurahan_id: null, organization: null, is_active: true, created_at: '2026-01-01' },
+  { id: 2, name: 'Admin Bunda PAUD', email: 'admin@bundapaud.surabaya.go.id', password: 'password123', phone: '081234567891', role_id: 2, kecamatan_id: null, kelurahan_id: null, organization: null, is_active: true, created_at: '2026-01-01' },
+  { id: 3, name: 'Bunda PAUD Kota Surabaya', email: 'bundakota@bundapaud.surabaya.go.id', password: 'password123', phone: '081234567892', role_id: 3, kecamatan_id: null, kelurahan_id: null, organization: null, is_active: true, created_at: '2026-01-01' },
+  { id: 4, name: 'Bunda PAUD Kec. Tegalsari', email: 'tegalsari@bundapaud.surabaya.go.id', password: 'password123', phone: '081234567893', role_id: 4, kecamatan_id: 'tegalsari', kelurahan_id: null, organization: null, is_active: true, created_at: '2026-01-01' },
+  { id: 5, name: 'Bunda PAUD Kel. Wonorejo', email: 'wonorejo@bundapaud.surabaya.go.id', password: 'password123', phone: '081234567894', role_id: 5, kecamatan_id: 'tegalsari', kelurahan_id: 'wonorejo', organization: null, is_active: true, created_at: '2026-01-01' }
+]
+
+export const usersStorage = {
+  getAll(params = {}) {
+    let users = getData(KEYS.USERS, DEFAULT_USERS)
+    
+    // Filter by role
+    if (params.role_id) {
+      users = users.filter(u => u.role_id === params.role_id)
+    }
+    
+    // Filter by status
+    if (params.is_active !== undefined) {
+      users = users.filter(u => u.is_active === params.is_active)
+    }
+    
+    // Search
+    if (params.search) {
+      const search = params.search.toLowerCase()
+      users = users.filter(u => 
+        u.name.toLowerCase().includes(search) || 
+        u.email.toLowerCase().includes(search)
+      )
+    }
+    
+    // Add role data
+    const roles = rolesStorage.getAll()
+    users = users.map(u => ({
+      ...u,
+      role: roles.find(r => r.id === u.role_id) || null
+    }))
+    
+    return users.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+  },
+  
+  get(id) {
+    const users = this.getAll()
+    return users.find(u => u.id === id)
+  },
+  
+  getByEmail(email) {
+    const users = this.getAll()
+    return users.find(u => u.email.toLowerCase() === email.toLowerCase())
+  },
+  
+  create(data) {
+    const users = getData(KEYS.USERS, DEFAULT_USERS)
+    const newUser = {
+      ...data,
+      id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
+      is_active: data.is_active ?? true,
+      created_at: new Date().toISOString().split('T')[0]
+    }
+    users.push(newUser)
+    saveData(KEYS.USERS, users)
+    
+    // Return with role
+    const role = rolesStorage.get(newUser.role_id)
+    return { ...newUser, role }
+  },
+  
+  update(id, data) {
+    const users = getData(KEYS.USERS, DEFAULT_USERS)
+    const index = users.findIndex(u => u.id === id)
+    if (index !== -1) {
+      // Don't update password if empty
+      if (!data.password) {
+        delete data.password
+      }
+      users[index] = { ...users[index], ...data }
+      saveData(KEYS.USERS, users)
+      
+      // Return with role
+      const role = rolesStorage.get(users[index].role_id)
+      return { ...users[index], role }
+    }
+    return null
+  },
+  
+  delete(id) {
+    const users = getData(KEYS.USERS, DEFAULT_USERS).filter(u => u.id !== id)
+    saveData(KEYS.USERS, users)
+    return true
+  },
+  
+  toggleActive(id) {
+    const users = getData(KEYS.USERS, DEFAULT_USERS)
+    const index = users.findIndex(u => u.id === id)
+    if (index !== -1) {
+      users[index].is_active = !users[index].is_active
+      saveData(KEYS.USERS, users)
+      const role = rolesStorage.get(users[index].role_id)
+      return { ...users[index], role }
+    }
+    return null
+  },
+  
+  // Authenticate user (for demo mode)
+  authenticate(email, password) {
+    const users = getData(KEYS.USERS, DEFAULT_USERS)
+    const user = users.find(u => 
+      u.email.toLowerCase() === email.toLowerCase() && 
+      u.password === password
+    )
+    
+    if (user) {
+      if (!user.is_active) {
+        return { success: false, message: 'Akun Anda telah dinonaktifkan' }
+      }
+      const role = rolesStorage.get(user.role_id)
+      return { 
+        success: true, 
+        user: { ...user, role, password: undefined } 
+      }
+    }
+    return { success: false, message: 'Email atau password salah' }
+  }
 }
 
 export default {
@@ -1112,5 +1277,8 @@ export default {
   peraturan: peraturanStorage,
   npk: npkStorage,
   laporan: laporanStorage,
-  faq: faqStorage
+  faq: faqStorage,
+  roles: rolesStorage,
+  users: usersStorage
 }
+

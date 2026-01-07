@@ -1,7 +1,12 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { materiService } from '@/services'
 
-const materials = ref([
+const loading = ref(true)
+const materials = ref([])
+
+// Default data for fallback
+const defaultMaterials = [
   {
     id: 1,
     title: 'Modul Pembelajaran Membaca untuk Anak',
@@ -82,20 +87,60 @@ const materials = ref([
     description: 'Instrumen penilaian perkembangan anak usia dini.',
     downloadUrl: '#'
   }
-])
+]
+
+const categoryIcons = {
+  'Literasi': '📚',
+  'Numerasi': '🔢',
+  'Kurikulum': '📋',
+  'Seni': '🎵',
+  'Perkembangan': '✋'
+}
 
 const categories = ['Semua', 'Literasi', 'Numerasi', 'Kurikulum', 'Seni', 'Perkembangan']
 const activeCategory = ref('Semua')
 
-const filteredMaterials = ref([...materials.value])
+// Load data from API
+const loadData = async () => {
+  loading.value = true
+  try {
+    const response = await materiService.getAll()
+    if (response.success && response.data && response.data.length > 0) {
+      materials.value = response.data.map(item => ({
+        id: item.id,
+        title: item.title,
+        category: item.category || 'Kurikulum',
+        icon: categoryIcons[item.category] || '📄',
+        fileType: item.file_type || 'PDF',
+        fileSize: item.file_size || '-',
+        description: item.description || '',
+        downloadUrl: item.file_url || '#'
+      }))
+    } else {
+      materials.value = defaultMaterials
+    }
+  } catch (error) {
+    console.error('Failed to load materials:', error)
+    materials.value = defaultMaterials
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
+
+// Computed filtered list
+const filteredMaterials = computed(() => {
+  if (activeCategory.value === 'Semua') {
+    return materials.value
+  }
+  return materials.value.filter(item => item.category === activeCategory.value)
+})
 
 const filterByCategory = (category) => {
   activeCategory.value = category
-  if (category === 'Semua') {
-    filteredMaterials.value = [...materials.value]
-  } else {
-    filteredMaterials.value = materials.value.filter(item => item.category === category)
-  }
 }
 
 const getFileTypeColor = (type) => {

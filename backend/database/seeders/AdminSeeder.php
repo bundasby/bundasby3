@@ -13,11 +13,13 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'name' => 'Admin Bunda PAUD',
-            'email' => 'admin@bundapaud.surabaya.go.id',
-            'password' => Hash::make('password123'),
-            'email_verified_at' => now(),
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@bundapaud.surabaya.go.id'],
+            [
+                'name' => 'Admin Bunda PAUD',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }

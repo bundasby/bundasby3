@@ -1,12 +1,17 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { bundaTvService } from '@/services'
 
-const videos = ref([
+const loading = ref(true)
+const videos = ref([])
+
+// Default data for fallback
+const defaultVideos = [
   {
     id: 1,
     title: 'Lagu Anak: Bersih Itu Sehat',
     category: 'Lagu Anak',
-    youtubeId: 'dQw4w9WgXcQ', // Ganti dengan ID YouTube asli
+    youtubeId: 'dQw4w9WgXcQ',
     views: '12.5K',
     date: '20 Des 2025'
   },
@@ -14,7 +19,7 @@ const videos = ref([
     id: 2,
     title: 'Tutorial: Membuat Origami Burung',
     category: 'Tutorial',
-    youtubeId: 'dQw4w9WgXcQ', // Ganti dengan ID YouTube asli
+    youtubeId: 'dQw4w9WgXcQ',
     views: '8.3K',
     date: '18 Des 2025'
   },
@@ -22,7 +27,7 @@ const videos = ref([
     id: 3,
     title: 'Cerita Dongeng: Si Kancil dan Buaya',
     category: 'Dongeng',
-    youtubeId: 'dQw4w9WgXcQ', // Ganti dengan ID YouTube asli
+    youtubeId: 'dQw4w9WgXcQ',
     views: '25.1K',
     date: '15 Des 2025'
   },
@@ -30,7 +35,7 @@ const videos = ref([
     id: 4,
     title: 'Belajar Menghitung 1-10',
     category: 'Edukasi',
-    youtubeId: 'dQw4w9WgXcQ', // Ganti dengan ID YouTube asli
+    youtubeId: 'dQw4w9WgXcQ',
     views: '18.7K',
     date: '12 Des 2025'
   },
@@ -38,7 +43,7 @@ const videos = ref([
     id: 5,
     title: 'Senam Ceria Bersama Bunda PAUD',
     category: 'Senam',
-    youtubeId: 'dQw4w9WgXcQ', // Ganti dengan ID YouTube asli
+    youtubeId: 'dQw4w9WgXcQ',
     views: '32.4K',
     date: '10 Des 2025'
   },
@@ -46,26 +51,65 @@ const videos = ref([
     id: 6,
     title: 'Mengenal Huruf ABC',
     category: 'Edukasi',
-    youtubeId: 'dQw4w9WgXcQ', // Ganti dengan ID YouTube asli
+    youtubeId: 'dQw4w9WgXcQ',
     views: '21.9K',
     date: '8 Des 2025'
   }
-])
+]
 
-const featuredVideo = ref(videos.value[0])
+const featuredVideo = ref(null)
 
 const categories = ['Semua', 'Lagu Anak', 'Tutorial', 'Dongeng', 'Edukasi', 'Senam']
 const activeCategory = ref('Semua')
 
-const filteredVideos = ref([...videos.value])
+// Extract YouTube ID from URL
+const extractYoutubeId = (url) => {
+  if (!url) return 'dQw4w9WgXcQ'
+  const match = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/watch\?.+&v=))([\w-]{11})/)
+  return match ? match[1] : url
+}
+
+// Load data from API
+const loadData = async () => {
+  loading.value = true
+  try {
+    const response = await bundaTvService.getAll()
+    if (response.success && response.data && response.data.length > 0) {
+      videos.value = response.data.map(item => ({
+        id: item.id,
+        title: item.title,
+        category: item.category || 'Edukasi',
+        youtubeId: extractYoutubeId(item.youtube_url || item.video_url),
+        views: item.views ? `${(item.views / 1000).toFixed(1)}K` : '0',
+        date: item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
+      }))
+    } else {
+      videos.value = defaultVideos
+    }
+    featuredVideo.value = videos.value[0]
+  } catch (error) {
+    console.error('Failed to load videos:', error)
+    videos.value = defaultVideos
+    featuredVideo.value = videos.value[0]
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
+
+// Computed filtered list
+const filteredVideos = computed(() => {
+  if (activeCategory.value === 'Semua') {
+    return videos.value
+  }
+  return videos.value.filter(item => item.category === activeCategory.value)
+})
 
 const filterByCategory = (category) => {
   activeCategory.value = category
-  if (category === 'Semua') {
-    filteredVideos.value = [...videos.value]
-  } else {
-    filteredVideos.value = videos.value.filter(item => item.category === category)
-  }
 }
 
 const selectVideo = (video) => {
@@ -91,7 +135,7 @@ const getYoutubeThumbnail = (youtubeId) => {
         </div>
 
         <!-- Featured Video Player (YouTube Embed) -->
-        <div class="max-w-4xl mx-auto">
+        <div v-if="featuredVideo" class="max-w-4xl mx-auto">
           <div class="relative bg-black rounded-2xl overflow-hidden shadow-2xl">
             <div class="aspect-video">
               <iframe
@@ -114,6 +158,11 @@ const getYoutubeThumbnail = (youtubeId) => {
               <span class="px-2 py-0.5 bg-white/20 rounded-full">{{ featuredVideo.category }}</span>
             </div>
           </div>
+        </div>
+        <!-- Loading State -->
+        <div v-else class="max-w-4xl mx-auto text-center py-12">
+          <div class="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+          <p class="text-red-100">Memuat video...</p>
         </div>
       </div>
     </section>

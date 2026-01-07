@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Complaint;
+use App\Mail\ComplaintNotification;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Mail;
 
 class ComplaintController extends Controller
 {
@@ -25,6 +27,15 @@ class ComplaintController extends Controller
         $validated['status'] = Complaint::STATUS_PENDING;
 
         $complaint = Complaint::create($validated);
+
+        // Send email notification to admin
+        try {
+            $adminEmail = config('mail.admin_email', 'bundapaud@surabaya.go.id');
+            Mail::to($adminEmail)->send(new ComplaintNotification($complaint, 'new'));
+        } catch (\Exception $e) {
+            // Log error but don't fail the request
+            \Log::warning('Failed to send complaint notification email: ' . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,
@@ -82,6 +93,13 @@ class ComplaintController extends Controller
         }
 
         $complaint->update($validated);
+
+        // Send status update email to complainant
+        try {
+            Mail::to($complaint->email)->send(new ComplaintNotification($complaint, 'status_update'));
+        } catch (\Exception $e) {
+            \Log::warning('Failed to send complaint status update email: ' . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,

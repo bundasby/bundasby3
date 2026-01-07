@@ -1,7 +1,12 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { majalahService } from '@/services'
 
-const publications = ref([
+const loading = ref(true)
+const publications = ref([])
+
+// Default data for fallback
+const defaultPublications = [
   {
     id: 1,
     title: 'Panduan Parenting Anak Usia Dini',
@@ -68,20 +73,53 @@ const publications = ref([
     description: 'Edisi spesial Hari Anak dengan berbagai artikel menarik.',
     downloadUrl: '#'
   }
-])
+]
 
 const types = ['Semua', 'Majalah', 'Buku']
 const activeType = ref('Semua')
 
-const filteredPublications = ref([...publications.value])
+// Load data from API
+const loadData = async () => {
+  loading.value = true
+  try {
+    const response = await majalahService.getAll()
+    if (response.success && response.data && response.data.length > 0) {
+      publications.value = response.data.map(item => ({
+        id: item.id,
+        title: item.title,
+        type: item.type || 'Buku',
+        cover: item.cover_image || `https://placehold.co/400x600/2563eb/ffffff?text=${encodeURIComponent(item.title)}`,
+        author: item.author || 'Tim Bunda PAUD',
+        year: item.year || new Date().getFullYear().toString(),
+        pages: item.pages || 0,
+        description: item.description || '',
+        downloadUrl: item.file_url || '#'
+      }))
+    } else {
+      publications.value = defaultPublications
+    }
+  } catch (error) {
+    console.error('Failed to load publications:', error)
+    publications.value = defaultPublications
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
+
+// Computed filtered list
+const filteredPublications = computed(() => {
+  if (activeType.value === 'Semua') {
+    return publications.value
+  }
+  return publications.value.filter(item => item.type === activeType.value)
+})
 
 const filterByType = (type) => {
   activeType.value = type
-  if (type === 'Semua') {
-    filteredPublications.value = [...publications.value]
-  } else {
-    filteredPublications.value = publications.value.filter(item => item.type === type)
-  }
 }
 </script>
 

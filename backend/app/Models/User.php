@@ -23,6 +23,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'phone',
+        'role_id',
+        'kecamatan_id',
+        'kelurahan_id',
+        'organization',
+        'is_active',
     ];
 
     /**
@@ -45,6 +51,55 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the role that owns the user
+     */
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Check if user has a specific role
+     */
+    public function hasRole(string $roleCode): bool
+    {
+        return $this->role && $this->role->code === $roleCode;
+    }
+
+    /**
+     * Check if user has any of the given roles
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        return $this->role && in_array($this->role->code, $roles);
+    }
+
+    /**
+     * Check if user is admin (super_admin or admin)
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasAnyRole(['super_admin', 'admin']);
+    }
+
+    /**
+     * Check if user is super admin
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('super_admin');
+    }
+
+    /**
+     * Get role code
+     */
+    public function getRoleCode(): ?string
+    {
+        return $this->role?->code;
     }
 }

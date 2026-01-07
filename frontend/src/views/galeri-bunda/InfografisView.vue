@@ -1,9 +1,13 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { infografisService } from '@/services'
 
 const selectedImage = ref(null)
+const loading = ref(true)
+const infografis = ref([])
 
-const infografis = ref([
+// Default data for fallback
+const defaultInfografis = [
   {
     id: 1,
     title: 'Pentingnya PAUD untuk Anak',
@@ -46,20 +50,49 @@ const infografis = ref([
     category: 'Edukasi',
     date: '20 Nov 2025'
   }
-])
+]
 
 const categories = ['Semua', 'Edukasi', 'Parenting', 'Kesehatan', 'Perkembangan', 'Program']
 const activeCategory = ref('Semua')
 
-const filteredInfografis = ref([...infografis.value])
+// Load data from API
+const loadData = async () => {
+  loading.value = true
+  try {
+    const response = await infografisService.getAll()
+    if (response.success && response.data && response.data.length > 0) {
+      infografis.value = response.data.map(item => ({
+        id: item.id,
+        title: item.title,
+        image: item.image || `https://placehold.co/800x1000/2563eb/ffffff?text=${encodeURIComponent(item.title)}`,
+        category: item.category || 'Edukasi',
+        date: item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
+      }))
+    } else {
+      infografis.value = defaultInfografis
+    }
+  } catch (error) {
+    console.error('Failed to load infografis:', error)
+    infografis.value = defaultInfografis
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
+
+// Computed filtered list
+const filteredInfografis = computed(() => {
+  if (activeCategory.value === 'Semua') {
+    return infografis.value
+  }
+  return infografis.value.filter(item => item.category === activeCategory.value)
+})
 
 const filterByCategory = (category) => {
   activeCategory.value = category
-  if (category === 'Semua') {
-    filteredInfografis.value = [...infografis.value]
-  } else {
-    filteredInfografis.value = infografis.value.filter(item => item.category === category)
-  }
 }
 
 const openLightbox = (image) => {

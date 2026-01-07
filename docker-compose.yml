@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bunda-paud-backend
+    restart: unless-stopped
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=bunda_paud
+      - DB_USERNAME=bunda_paud
+      - DB_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      - postgres
+    networks:
+      - bunda-network
+    volumes:
+      - backend-storage:/var/www/html/storage
+
+  # Frontend (build static files)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bunda-paud-frontend
+    restart: unless-stopped
+    networks:
+      - bunda-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: bunda-paud-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - bunda-network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: bunda-paud-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=bunda_paud
+      - POSTGRES_USER=bunda_paud
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - bunda-network
+
+  # Redis for caching & sessions
+  redis:
+    image: redis:7-alpine
+    container_name: bunda-paud-redis
+    restart: unless-stopped
+    networks:
+      - bunda-network
+
+networks:
+  bunda-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  backend-storage:

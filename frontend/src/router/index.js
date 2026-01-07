@@ -317,6 +317,18 @@ const routes = [
     },
   },
   {
+    path: "/admin/users",
+    name: "admin-users",
+    component: () => import("../views/admin/UserManagementView.vue"),
+    meta: {
+      title: "Manajemen Pengguna",
+      hideNavbar: true,
+      hideFooter: true,
+      requiresAuth: true,
+      roles: ["super_admin"],
+    },
+  },
+  {
     path: "/admin/sliders",
     name: "admin-sliders",
     component: () => import("../views/admin/SliderView.vue"),
@@ -512,10 +524,36 @@ const router = createRouter({
   },
 });
 
-// Update document title
+// Import auth service for route guards
+import { authService } from '@/services';
+
+// Update document title and check authentication
 router.beforeEach((to, from, next) => {
   document.title = `${to.meta.title} | Bunda PAUD Kota Surabaya`;
+  
+  // Check if route requires authentication
+  if (to.meta.requiresAuth) {
+    if (!authService.isLoggedIn()) {
+      return next('/admin/login');
+    }
+    
+    // Check role-based access
+    if (to.meta.roles && to.meta.roles.length > 0) {
+      const userRole = authService.getRoleCode();
+      if (!to.meta.roles.includes(userRole)) {
+        // Redirect to dashboard if user doesn't have required role
+        return next('/admin/dashboard');
+      }
+    }
+  }
+  
+  // If user is logged in and trying to access login page, redirect to dashboard
+  if (to.path === '/admin/login' && authService.isLoggedIn()) {
+    return next('/admin/dashboard');
+  }
+  
   next();
 });
 
 export default router;
+
