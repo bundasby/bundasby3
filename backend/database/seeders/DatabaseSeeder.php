@@ -35,6 +35,8 @@ class DatabaseSeeder extends Seeder
                 // Phase 2 Content Seeders
             BundaPaudSeeder::class,
             MitraPaudSeeder::class,
+                // Phase 3 - Webservice Integration
+            ApiIntegrationSeeder::class,
         ]);
     }
 }

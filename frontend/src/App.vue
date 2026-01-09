@@ -3,7 +3,7 @@ import { RouterView, useRoute } from 'vue-router'
 import { computed } from 'vue'
 import Navbar from '@/components/layout/Navbar.vue'
 import Footer from '@/components/layout/Footer.vue'
-import WhatsAppFloat from '@/components/ui/WhatsAppFloat.vue'
+import SupportWidget from '@/components/SupportWidget.vue'
 
 const route = useRoute()
 
@@ -20,8 +20,7 @@ const isAdminPage = computed(() => route.path.startsWith('/admin'))
     </main>
     <Footer v-if="showFooter" />
     
-    <!-- WhatsApp Floating Button (only on public pages) -->
-    <WhatsAppFloat v-if="!isAdminPage" />
+    <!-- Unified Support Widget (Chat + WhatsApp) -->
+    <SupportWidget v-if="!isAdminPage" />
   </div>
 </template>
-

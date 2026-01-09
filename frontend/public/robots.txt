@@ -1,0 +1,26 @@
+# Robots.txt - Bunda PAUD Kota Surabaya
+# https://bundapaud.surabaya.go.id
+
+User-agent: *
+Allow: /
+
+# Disallow admin pages
+Disallow: /admin/
+Disallow: /api/
+
+# Allow CSS and JS for rendering
+Allow: /assets/
+
+# Sitemap location
+Sitemap: https://bundapaud.surabaya.go.id/sitemap.xml
+
+# Crawl delay to prevent overloading
+Crawl-delay: 10
+
+# Block sensitive directories
+Disallow: /*.json$
+Disallow: /*.xml$
+
+# Allow specific files
+Allow: /sitemap.xml
+Allow: /robots.txt

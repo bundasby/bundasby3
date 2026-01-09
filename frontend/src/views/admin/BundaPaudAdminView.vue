@@ -182,6 +182,123 @@ const formatDate = (dateStr) => {
     return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+// Export to Excel
+const exportToExcel = () => {
+    let csvContent = "data:text/csv;charset=utf-8,"
+    csvContent += "No,Nama,Wilayah,Tipe,No HP,Status\n"
+    
+    bundaPaudList.value.forEach((item, index) => {
+        csvContent += `${index + 1},"${item.name}","${item.area}","${item.type}","${item.phone || ''}","${item.is_active ? 'Aktif' : 'Nonaktif'}"\n`
+    })
+    
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement("a")
+    link.setAttribute("href", encodedUri)
+    link.setAttribute("download", `bunda_paud_${new Date().toISOString().split('T')[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    alert('Data berhasil diekspor ke Excel/CSV!')
+}
+
+// Export to PDF
+const exportToPDF = () => {
+    const printWindow = window.open('', '_blank')
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Laporan Data Bunda PAUD</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                h1 { text-align: center; color: #7c3aed; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                th { background: #7c3aed; color: white; }
+                tr:nth-child(even) { background: #f9f9f9; }
+                .header { text-align: center; margin-bottom: 20px; }
+                .date { text-align: right; font-size: 12px; color: #666; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>📊 Data Bunda PAUD Kota Surabaya</h1>
+                <p class="date">Dicetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama</th>
+                        <th>Wilayah</th>
+                        <th>Tipe</th>
+                        <th>No HP</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${bundaPaudList.value.map((item, index) => `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.name}</td>
+                            <td>${item.area}</td>
+                            <td>${item.type}</td>
+                            <td>${item.phone || '-'}</td>
+                            <td>${item.is_active ? '✅ Aktif' : '❌ Nonaktif'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            <p style="margin-top: 20px; text-align: center; font-size: 12px; color: #666;">
+                Total: ${bundaPaudList.value.length} data | Bunda PAUD Kota Surabaya
+            </p>
+        </body>
+        </html>
+    `)
+    printWindow.document.close()
+    printWindow.print()
+}
+
+// Import from Excel
+const importFileInput = ref(null)
+
+const importFromExcel = () => {
+    importFileInput.value?.click()
+}
+
+const handleFileImport = (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+    
+    const reader = new FileReader()
+    reader.onload = (e) => {
+        const text = e.target.result
+        const lines = text.split('\n').filter(line => line.trim())
+        const headers = lines[0].split(',')
+        
+        let imported = 0
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim())
+            if (values.length >= 4) {
+                bundaPaudList.value.push({
+                    id: Date.now() + i,
+                    name: values[1] || '',
+                    area: values[2] || '',
+                    type: values[3]?.toLowerCase() === 'kelurahan' ? 'kelurahan' : 'kecamatan',
+                    phone: values[4] || '',
+                    is_active: values[5]?.toLowerCase() !== 'nonaktif'
+                })
+                imported++
+            }
+        }
+        
+        persist('bp_bunda_paud_list', bundaPaudList.value)
+        alert(`Berhasil mengimpor ${imported} data!`)
+    }
+    reader.readAsText(file)
+    event.target.value = ''
+}
+
 onMounted(loadData)
 </script>
 
@@ -232,6 +349,23 @@ onMounted(loadData)
             <div class="p-6">
                 <!-- Tab: List Bunda PAUD -->
                 <div v-if="activeTab === 'list'">
+                    <!-- Export/Import Buttons -->
+                    <div class="flex flex-wrap gap-2 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                        <button @click="exportToPDF" class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                            📄 Export PDF
+                        </button>
+                        <button @click="exportToExcel" class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            📊 Export Excel
+                        </button>
+                        <button @click="importFromExcel" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                            📥 Import Excel
+                        </button>
+                        <input ref="importFileInput" type="file" accept=".csv,.xlsx,.xls" @change="handleFileImport" class="hidden" />
+                    </div>
+
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                         <div class="flex flex-col md:flex-row gap-4 flex-1">
                             <input v-model="searchQuery" type="text" placeholder="Cari nama atau wilayah..." class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />

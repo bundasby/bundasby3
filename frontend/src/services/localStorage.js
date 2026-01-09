@@ -232,6 +232,31 @@ export const initializeData = () => {
   }
 }
 
+// Late initialization for users/roles (called after all defaults are defined)
+export const initializeAuthData = () => {
+  if (!localStorage.getItem(KEYS.ROLES)) {
+    saveData(KEYS.ROLES, [
+      { id: 1, code: 'super_admin', name: 'Super Admin', level: 1, description: 'Akses penuh ke semua fitur', permissions: ['*'] },
+      { id: 2, code: 'admin', name: 'Admin', level: 2, description: 'Akses ke semua konten', permissions: ['content.*', 'settings.*'] },
+      { id: 3, code: 'bunda_kota', name: 'Bunda PAUD Kota', level: 3, description: 'Dashboard tingkat kota', permissions: ['dashboard.view'] },
+      { id: 4, code: 'bunda_kecamatan', name: 'Bunda PAUD Kecamatan', level: 4, description: 'Dashboard tingkat kecamatan', permissions: ['dashboard.view'] },
+      { id: 5, code: 'bunda_kelurahan', name: 'Bunda PAUD Kelurahan', level: 5, description: 'Dashboard tingkat kelurahan', permissions: ['dashboard.view'] },
+      { id: 6, code: 'juri', name: 'Juri Apresiasi', level: 6, description: 'Penilaian apresiasi', permissions: ['apresiasi.*'] },
+      { id: 7, code: 'dinas', name: 'Dinas/PAUD HI', level: 7, description: 'Akses Dinas', permissions: ['dinas.*'] },
+      { id: 8, code: 'mitra', name: 'Mitra PAUD', level: 8, description: 'Kelola mitra', permissions: ['mitra.*'] }
+    ])
+  }
+  if (!localStorage.getItem(KEYS.USERS)) {
+    saveData(KEYS.USERS, [
+      { id: 1, name: 'Super Admin', email: 'superadmin@bundapaud.surabaya.go.id', password: 'password123', phone: '081234567890', role_id: 1, is_active: true, created_at: '2026-01-01' },
+      { id: 2, name: 'Admin Bunda PAUD', email: 'admin@bundapaud.surabaya.go.id', password: 'password123', phone: '081234567891', role_id: 2, is_active: true, created_at: '2026-01-01' },
+      { id: 3, name: 'Bunda PAUD Kota', email: 'bundakota@bundapaud.surabaya.go.id', password: 'password123', phone: '081234567892', role_id: 3, is_active: true, created_at: '2026-01-01' },
+      { id: 4, name: 'Bunda PAUD Kec. Tegalsari', email: 'tegalsari@bundapaud.surabaya.go.id', password: 'password123', phone: '081234567893', role_id: 4, kecamatan_id: 'tegalsari', is_active: true, created_at: '2026-01-01' },
+      { id: 5, name: 'Bunda PAUD Kel. Wonorejo', email: 'wonorejo@bundapaud.surabaya.go.id', password: 'password123', phone: '081234567894', role_id: 5, kecamatan_id: 'tegalsari', kelurahan_id: 'wonorejo', is_active: true, created_at: '2026-01-01' }
+    ])
+  }
+}
+
 // ============================================
 // SETTINGS SERVICE
 // ============================================
@@ -937,20 +962,30 @@ export const materiStorage = {
 const DEFAULT_MAJALAH = [
   {
     id: '1',
+    title: 'Buku Panduan Orang Tua PAUD',
+    description: 'Panduan untuk orang tua dalam mendampingi anak usia dini',
+    coverUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop',
+    fileUrl: 'https://drive.google.com/file/d/1LRQ80Yll3Isb0ZuY9p9wntkjTMBz1Pha/view?usp=sharing',
+    category: 'buku',
+    isActive: true,
+    createdAt: '2025-12-15'
+  },
+  {
+    id: '2',
     title: 'Majalah PAUD Surabaya Edisi 2025',
     description: 'Majalah resmi Bunda PAUD Kota Surabaya',
-    coverUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop',
-    fileUrl: '#',
+    coverUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop',
+    fileUrl: 'https://drive.google.com/file/d/1LRQ80Yll3Isb0ZuY9p9wntkjTMBz1Pha/view?usp=sharing',
     category: 'majalah',
     isActive: true,
     createdAt: '2025-12-01'
   },
   {
-    id: '2',
-    title: 'Buku Panduan Orang Tua PAUD',
-    description: 'Panduan untuk orang tua dalam mendampingi anak',
-    coverUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop',
-    fileUrl: '#',
+    id: '3',
+    title: 'Panduan Parenting Anak Usia Dini',
+    description: 'Tips dan trik parenting untuk anak usia dini',
+    coverUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=600&fit=crop',
+    fileUrl: 'https://drive.google.com/file/d/1LRQ80Yll3Isb0ZuY9p9wntkjTMBz1Pha/view?usp=sharing',
     category: 'buku',
     isActive: true,
     createdAt: '2025-11-20'

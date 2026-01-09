@@ -1,9 +1,29 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { majalahService } from '@/services'
+import { majalahStorage, initializeData } from '@/services/localStorage'
+import PdfViewer from '@/components/common/PdfViewer.vue'
 
 const loading = ref(true)
 const publications = ref([])
+
+// PDF Viewer state
+const showPdfViewer = ref(false)
+const selectedBook = ref(null)
+
+// Open PDF Viewer
+const openPdfViewer = (book) => {
+  if (!book.file_url) {
+    alert('File PDF belum tersedia untuk buku ini.')
+    return
+  }
+  selectedBook.value = book
+  showPdfViewer.value = true
+}
+
+const closePdfViewer = () => {
+  showPdfViewer.value = false
+  selectedBook.value = null
+}
 
 // Default data for fallback
 const defaultPublications = [
@@ -14,9 +34,10 @@ const defaultPublications = [
     cover: 'https://placehold.co/400x600/2563eb/ffffff?text=Panduan+Parenting',
     author: 'Tim Bunda PAUD Surabaya',
     year: '2025',
-    pages: 120,
+    pages: 46,
     description: 'Panduan lengkap untuk orang tua dalam mendampingi tumbuh kembang anak usia dini.',
-    downloadUrl: '#'
+    downloadUrl: 'https://drive.google.com/file/d/1LRQ80Yll3Isb0ZuY9p9wntkjTMBz1Pha/view',
+    file_url: 'https://drive.google.com/file/d/1LRQ80Yll3Isb0ZuY9p9wntkjTMBz1Pha/view?usp=sharing'
   },
   {
     id: 2,
@@ -27,7 +48,8 @@ const defaultPublications = [
     year: 'Desember 2025',
     pages: 48,
     description: 'Edisi terbaru dengan tema "Menyambut Tahun Ajaran Baru dengan Semangat".',
-    downloadUrl: '#'
+    downloadUrl: '#',
+    file_url: ''
   },
   {
     id: 3,
@@ -38,7 +60,8 @@ const defaultPublications = [
     year: '2025',
     pages: 80,
     description: 'Kumpulan ide aktivitas kreatif yang dapat dilakukan di rumah dan sekolah.',
-    downloadUrl: '#'
+    downloadUrl: '#',
+    file_url: ''
   },
   {
     id: 4,
@@ -49,7 +72,8 @@ const defaultPublications = [
     year: 'November 2025',
     pages: 48,
     description: 'Edisi dengan tema "Membangun Karakter Anak Sejak Dini".',
-    downloadUrl: '#'
+    downloadUrl: '#',
+    file_url: ''
   },
   {
     id: 5,
@@ -60,7 +84,8 @@ const defaultPublications = [
     year: '2025',
     pages: 96,
     description: 'Panduan nutrisi dan resep makanan sehat untuk anak usia dini.',
-    downloadUrl: '#'
+    downloadUrl: '#',
+    file_url: ''
   },
   {
     id: 6,
@@ -71,29 +96,35 @@ const defaultPublications = [
     year: 'Oktober 2025',
     pages: 48,
     description: 'Edisi spesial Hari Anak dengan berbagai artikel menarik.',
-    downloadUrl: '#'
+    downloadUrl: '#',
+    file_url: ''
   }
 ]
 
 const types = ['Semua', 'Majalah', 'Buku']
 const activeType = ref('Semua')
 
-// Load data from API
-const loadData = async () => {
+// Load data from localStorage (consistent with admin panel)
+const loadData = () => {
   loading.value = true
   try {
-    const response = await majalahService.getAll()
-    if (response.success && response.data && response.data.length > 0) {
-      publications.value = response.data.map(item => ({
+    initializeData()
+    const data = majalahStorage.getAll()
+    console.log('Majalah localStorage data:', data) // Debug log
+    if (data && data.length > 0) {
+      publications.value = data.map(item => ({
         id: item.id,
         title: item.title,
-        type: item.type || 'Buku',
-        cover: item.cover_image || `https://placehold.co/400x600/2563eb/ffffff?text=${encodeURIComponent(item.title)}`,
+        type: item.category === 'majalah' ? 'Majalah' : 'Buku',
+        // LocalStorage uses coverUrl
+        cover: item.coverUrl || `https://placehold.co/400x600/2563eb/ffffff?text=${encodeURIComponent(item.title)}`,
         author: item.author || 'Tim Bunda PAUD',
         year: item.year || new Date().getFullYear().toString(),
         pages: item.pages || 0,
         description: item.description || '',
-        downloadUrl: item.file_url || '#'
+        // LocalStorage uses fileUrl for PDF link
+        downloadUrl: item.fileUrl || '#',
+        file_url: item.fileUrl || '' // For PDF viewer
       }))
     } else {
       publications.value = defaultPublications
@@ -191,17 +222,34 @@ const filterByType = (type) => {
               <p class="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
                 {{ pub.description }}
               </p>
-              <div class="flex items-center justify-between">
+              <div class="flex items-center justify-between gap-2">
                 <span class="text-xs text-gray-400">{{ pub.pages }} halaman</span>
-                <a 
-                  :href="pub.downloadUrl"
-                  class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-medium rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Unduh
-                </a>
+                <div class="flex gap-2">
+                  <!-- Baca Online Button -->
+                  <button 
+                    v-if="pub.file_url"
+                    @click="openPdfViewer(pub)"
+                    class="inline-flex items-center gap-1 px-3 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all duration-300"
+                    title="Baca Online"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    Baca
+                  </button>
+                  <!-- Download Button -->
+                  <a 
+                    v-if="pub.downloadUrl && pub.downloadUrl !== '#'"
+                    :href="pub.downloadUrl"
+                    target="_blank"
+                    class="inline-flex items-center gap-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-medium rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Unduh
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -216,5 +264,15 @@ const filterByType = (type) => {
         </div>
       </div>
     </section>
+
+    <!-- PDF Viewer Modal -->
+    <PdfViewer 
+      v-if="showPdfViewer && selectedBook"
+      :url="selectedBook.file_url"
+      :title="selectedBook.title"
+      @close="closePdfViewer"
+    />
   </div>
 </template>
+
+

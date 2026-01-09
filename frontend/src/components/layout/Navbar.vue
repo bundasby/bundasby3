@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { articleService, documentService } from "@/services";
+import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -480,6 +481,9 @@ onUnmounted(() => {
               />
             </svg>
           </button>
+
+          <!-- Language Switcher -->
+          <LanguageSwitcher />
 
           <!-- Login Admin Button -->
           <router-link

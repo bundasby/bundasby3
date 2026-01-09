@@ -29,6 +29,11 @@ use App\Http\Controllers\Api\GugusTugasController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\HealthController;
+// Webservice Integration Controllers
+use App\Http\Controllers\Api\ExternalApiController;
+use App\Http\Controllers\Api\ApiClientController;
+use App\Http\Controllers\Api\PublicApiController;
+use App\Http\Controllers\Api\WebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -288,5 +293,61 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/gugus-tugas/{gugusTuga}', [GugusTugasController::class, 'show']);
     Route::put('/gugus-tugas/{gugusTuga}', [GugusTugasController::class, 'update']);
     Route::delete('/gugus-tugas/{gugusTuga}', [GugusTugasController::class, 'destroy']);
+
+    // =====================================================
+    // WEBSERVICE INTEGRATION ROUTES (Admin)
+    // =====================================================
+
+    // External API Management
+    Route::prefix('external-apis')->group(function () {
+        Route::get('/', [ExternalApiController::class, 'index']);
+        Route::post('/', [ExternalApiController::class, 'store']);
+        Route::get('/{externalApi}', [ExternalApiController::class, 'show']);
+        Route::put('/{externalApi}', [ExternalApiController::class, 'update']);
+        Route::delete('/{externalApi}', [ExternalApiController::class, 'destroy']);
+        Route::post('/{externalApi}/test', [ExternalApiController::class, 'test']);
+        Route::post('/{externalApi}/sync', [ExternalApiController::class, 'sync']);
+        Route::post('/fetch', [ExternalApiController::class, 'fetch']);
+    });
+
+    // API Client Management
+    Route::prefix('api-clients')->group(function () {
+        Route::get('/', [ApiClientController::class, 'index']);
+        Route::post('/', [ApiClientController::class, 'store']);
+        Route::get('/endpoints', [ApiClientController::class, 'availableEndpoints']);
+        Route::get('/{apiClient}', [ApiClientController::class, 'show']);
+        Route::put('/{apiClient}', [ApiClientController::class, 'update']);
+        Route::delete('/{apiClient}', [ApiClientController::class, 'destroy']);
+        Route::post('/{apiClient}/regenerate-key', [ApiClientController::class, 'regenerateKey']);
+        Route::get('/{apiClient}/logs', [ApiClientController::class, 'logs']);
+    });
+
+    // Webhook Management
+    Route::prefix('webhooks')->group(function () {
+        Route::get('/', [WebhookController::class, 'index']);
+        Route::post('/', [WebhookController::class, 'store']);
+        Route::get('/events', [WebhookController::class, 'events']);
+        Route::get('/statistics', [WebhookController::class, 'statistics']);
+        Route::post('/retry-failed', [WebhookController::class, 'retryFailed']);
+        Route::get('/{webhook}', [WebhookController::class, 'show']);
+        Route::put('/{webhook}', [WebhookController::class, 'update']);
+        Route::delete('/{webhook}', [WebhookController::class, 'destroy']);
+        Route::post('/{webhook}/test', [WebhookController::class, 'test']);
+        Route::get('/{webhook}/logs', [WebhookController::class, 'logs']);
+        Route::post('/{webhook}/regenerate-secret', [WebhookController::class, 'regenerateSecret']);
+    });
 });
 
+// =====================================================
+// PUBLIC API (For External Dinas - API Key Auth)
+// =====================================================
+Route::prefix('public/v1')->middleware('api.key')->group(function () {
+    Route::get('/health', [PublicApiController::class, 'healthCheck']);
+    Route::get('/data-paud', [PublicApiController::class, 'dataPaud']);
+    Route::get('/data-paud/{npsn}', [PublicApiController::class, 'dataPaudByNpsn']);
+    Route::get('/bunda-paud', [PublicApiController::class, 'bundaPaud']);
+    Route::get('/mitra-paud', [PublicApiController::class, 'mitraPaud']);
+    Route::get('/statistics', [PublicApiController::class, 'statistics']);
+    Route::get('/articles', [PublicApiController::class, 'articles']);
+    Route::get('/programs', [PublicApiController::class, 'programs']);
+});

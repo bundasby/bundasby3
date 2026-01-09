@@ -5,6 +5,7 @@
 
 import { 
   initializeData,
+  initializeAuthData,
   settingsStorage,
   slidersStorage,
   articlesStorage,
@@ -21,6 +22,7 @@ import api, { checkApiAvailable, uploadFile } from './api'
 
 // Initialize default data on first load
 initializeData()
+initializeAuthData()
 
 // ============================================
 // ARTICLE SERVICE

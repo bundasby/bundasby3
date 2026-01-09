@@ -90,6 +90,13 @@ class RoleSeeder extends Seeder
                 'description' => 'Akses view only dan laporan',
                 'permissions' => json_encode(['dashboard.view', 'reports.view']),
             ],
+            [
+                'code' => 'dinas',
+                'name' => 'Dinas Pendidikan',
+                'level' => 12,
+                'description' => 'Akses menu dinas pendidikan (pelatihan, edu city tour, fasilitasi, vaksinasi)',
+                'permissions' => json_encode(['dinas.*', 'pelatihan.*', 'fasilitasi.*', 'vaksinasi.*']),
+            ],
         ];
 
         foreach ($roles as $role) {

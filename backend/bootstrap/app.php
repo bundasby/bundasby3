@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'sanitize' => \App\Http\Middleware\SanitizeInput::class,
             'force.https' => \App\Http\Middleware\ForceHttps::class,
             'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
+            'api.key' => \App\Http\Middleware\ApiKeyAuthMiddleware::class,
         ]);
 
         // Add security headers to all responses
